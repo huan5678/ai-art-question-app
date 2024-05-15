@@ -1,7 +1,8 @@
 import '@/styles/globals.css';
 
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 
 import { Footer } from '@/components/footer';
 import { Navbar } from '@/components/navbar/navbar';
@@ -48,13 +49,27 @@ export const metadata: Metadata = {
 const RootLayout = ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn('min-h-screen font-sans', fonts)}>
-        <ThemeProvider attribute="class">
-          <Navbar />
-          {children}
-          <Footer />
-          <Toaster />
-        </ThemeProvider>
+      <body className={cn('font-sans', fonts)}>
+        <div
+          className={cn(
+            'relative min-h-screen bg-gradient-to-b from-black/90 via-black/10 to-black/90'
+          )}
+        >
+          <Image
+            src="/images/bg.jpg"
+            fill
+            layout="fill"
+            objectFit="cover"
+            alt="Background Image"
+            className="z-[-1]"
+          />
+          <ThemeProvider attribute="class" defaultTheme="light">
+            <Navbar />
+            {children}
+            <Footer />
+            <Toaster />
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );
