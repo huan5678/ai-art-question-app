@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 
 import Confetti from '@/components/Confetti';
 import StringSpinner from '@/components/StringSpinner';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -90,6 +91,19 @@ const Home = () => {
         description: '請輸入字串',
         variant: 'destructive',
       });
+    }
+  };
+
+  const getQuestion = async () => {
+    try {
+      const response = await fetch('/api/notion');
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -196,6 +210,9 @@ const Home = () => {
           )}
           {showConfetti && <Confetti />}
         </div>
+        <Button type="button" variant="outline" onClick={getQuestion}>
+          Call API
+        </Button>
         {quests.filter((q) => q.selected).length > 0 && (
           <div className="flex justify-end">
             <Dialog>
@@ -265,6 +282,7 @@ const Home = () => {
                     }
                   />
                 </div>
+                <ThemeToggle className="absolute bottom-2 right-2" />
                 <div className="space-y-4">
                   <h3 className="text-center text-lg">抽選數量</h3>
                   <Input
