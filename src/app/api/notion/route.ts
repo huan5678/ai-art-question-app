@@ -3,19 +3,30 @@ import { NextResponse } from 'next/server';
 
 // Initializing a client
 const notion = new Client({
-  auth: process.env.NOTION_DB_SECRET,
+  auth: process.env.NOTION_DB_SECRET as string,
 });
 
 export async function GET() {
   try {
-    const response = await notion.databases.query({
-      database_id: process.env.NOTION_DB_ID as string,
+    const databaseId = process.env.NOTION_DB_ID as string;
+    if (!databaseId) {
+      return NextResponse.json(
+        { message: 'Database ID is missing', status: false },
+        { status: 500 }
+      );
+    }
+    const dbStatus = await notion.databases.retrieve({
+      database_id: databaseId,
     });
-    console.log('response:', response);
+    const data = await notion.databases.query({
+      database_id: databaseId,
+    });
+    console.log('data:', data);
     return NextResponse.json({
       message: 'Data fetched',
       status: true,
-      data: response,
+      databaseStatus: dbStatus,
+      data,
     });
   } catch (error) {
     return NextResponse.json(
