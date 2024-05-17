@@ -11,6 +11,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/lib/constant';
 import { fonts } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
+import { ReactQueryClientProvider } from '@/provider/ReactQueryClientProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -50,26 +51,28 @@ const RootLayout = ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn('font-sans', fonts)}>
-        <div
-          className={cn(
-            'relative min-h-screen bg-gradient-to-b from-black/90 via-black/10 to-black/90'
-          )}
-        >
-          <Image
-            src="/images/bg.jpg"
-            fill
-            layout="fill"
-            objectFit="cover"
-            alt="Background Image"
-            className="z-[-1]"
-          />
-          <ThemeProvider attribute="class" defaultTheme="light">
-            <Navbar />
-            {children}
-            <Footer />
-            <Toaster />
-          </ThemeProvider>
-        </div>
+        <ReactQueryClientProvider>
+          <div
+            className={cn(
+              'relative min-h-screen bg-gradient-to-b from-black/90 via-black/10 to-black/90'
+            )}
+          >
+            <Image
+              src="/images/bg.jpg"
+              fill
+              layout="fill"
+              objectFit="cover"
+              alt="Background Image"
+              className="z-[-1]"
+            />
+            <ThemeProvider attribute="class" defaultTheme="light">
+              <Navbar />
+              {children}
+              <Footer />
+              <Toaster />
+            </ThemeProvider>
+          </div>
+        </ReactQueryClientProvider>
       </body>
     </html>
   );
