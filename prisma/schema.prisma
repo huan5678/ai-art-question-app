@@ -41,8 +41,10 @@ model User {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
   email         String?   @unique
+  hashedPassword String?
   emailVerified DateTime?
   image         String?
+  role          String    @default("user")
   accounts      Account[]
   sessions      Session[]
   quests        Quest[]
@@ -73,12 +75,13 @@ model Quest {
   description String?
   accessCount Int      @default(0)
   userId      String   @db.ObjectId
-  categoryId  String   @db.ObjectId
+  categoryId  String?  @db.ObjectId @default("unCategory")
   user        User     @relation(fields: [userId], references: [id])
-  category    Category @relation(fields: [categoryId], references: [id])
+  category    Category? @relation(fields: [categoryId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
   @@index([categoryId])
 }
+

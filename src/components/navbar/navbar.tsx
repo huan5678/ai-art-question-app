@@ -20,6 +20,9 @@ export const Navbar = () => {
           >
             回抽選系統
           </Link>
+          <h2 className="text-center text-3xl font-bold text-white">
+            後台管理系統
+          </h2>
           <div className="flex items-center gap-2">
             <SignInButton />
           </div>
