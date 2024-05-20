@@ -1,54 +1,62 @@
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
-import prisma from '@/lib/prisma';
+import {
+  createCategory,
+  deleteCategory,
+  getCategories,
+  updateCategory,
+} from '@/actions/category-actions';
 
 export async function GET() {
-  const categories = await prisma.category.findMany({
-    orderBy: {
-      createdAt: 'asc', // 這裡可以替換為你想排序的字段，例如 'createdAt' 或 'updatedAt'
-    },
-  });
+  const categories = await getCategories();
   return NextResponse.json(categories);
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const requestBody = await request.json();
-    await prisma.category.create({
-      data: {
-        name: requestBody,
-      },
-    });
+    await createCategory(requestBody.name);
     return GET();
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { message: 'Error creating category' },
+      { message: (error as unknown as Error).message },
       { status: 500 }
     );
   }
 }
 
-export async function PUT(request: Request) {
+export async function PATCH(request: NextRequest) {
   const url = new URL(request.url);
   const id = url.pathname.split('/').pop();
+  if (!id) {
+    return NextResponse.json(
+      { message: 'Category id is missing' },
+      { status: 400 }
+    );
+  }
   const { name } = await request.json();
-  const category = await prisma.category.update({
-    where: { id: String(id) },
-    data: {
-      name,
-    },
-  });
+  const category = await updateCategory(id, name);
   return NextResponse.json(category);
 }
 
-export async function DELETE(request: Request) {
-  const url = new URL(request.url);
-  const id = url.pathname.split('/').pop();
-  await prisma.category.delete({ where: { id: String(id) } });
-  await prisma.quest.updateMany({
-    where: { categoryId: String(id) },
-    data: { categoryId: 'unCategory' },
-  });
-  return NextResponse.json({ message: 'Category deleted' });
+export async function DELETE(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop();
+    if (!id) {
+      return NextResponse.json(
+        { message: 'Category id is missing' },
+        { status: 400 }
+      );
+    }
+    await deleteCategory(id);
+    return NextResponse.json({ message: 'Category deleted' });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      { message: 'Error deleting category' },
+      { status: 500 }
+    );
+  }
 }

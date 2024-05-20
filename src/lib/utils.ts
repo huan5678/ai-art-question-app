@@ -3,9 +3,7 @@ import { twMerge } from 'tailwind-merge';
 
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
-export const passwordRule =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[`~!@#$%^&*()_+<>?:"{},./\\;'[\]-]).{8,}$/;
-
-export const passwordCheck = (password: string) => {
-  return passwordRule.test(password);
-};
+export const passwordCheck = (password: string) =>
+  /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(
+    password
+  );

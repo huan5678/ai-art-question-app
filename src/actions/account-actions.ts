@@ -1,39 +1,73 @@
 'use server';
 
-import prisma from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
-interface AccountInput {
-  userId: string;
-  type: string;
-  provider: string;
-  providerAccountId: string;
-  refresh_token?: string;
-  access_token?: string;
-  expires_at?: number;
-  token_type?: string;
-  scope?: string;
-  id_token?: string;
-  session_state?: string;
+import { env } from '@/env.mjs';
+
+const prisma = new PrismaClient();
+const SECRET_KEY = env.NEXTAUTH_SECRET as string;
+
+export async function registerUser(
+  email: string,
+  password: string,
+  name: string
+) {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+
+  if (existingUser) {
+    throw new Error('User already exists');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name,
+      hashedPassword,
+    },
+  });
+
+  return {
+    state: true,
+    message: 'User registered',
+    result: { user },
+  };
 }
 
-export async function createAccount(input: AccountInput) {
-  const account = await prisma.account.create({
-    data: input,
+export async function loginUser(email: string, password: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user || !bcrypt.compareSync(password, user.hashedPassword || '')) {
+    throw new Error('Invalid credentials');
+  }
+
+  const sessionToken = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, {
+    expiresIn: '30d',
   });
-  return account;
+
+  return {
+    state: true,
+    message: 'Login successful',
+    result: { id: user.id, name: user.name, email: user.email, sessionToken },
+  };
 }
 
-export async function updateAccount(id: string, input: AccountInput) {
-  const account = await prisma.account.update({
-    where: { id },
-    data: input,
-  });
-  return account;
-}
+export async function deleteUser(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
 
-export async function deleteAccount(id: string) {
-  const account = await prisma.account.delete({
-    where: { id },
+  if (!user) {
+    throw new Error('User not found');
+  }
+  await prisma.user.delete({
+    where: { id: userId },
+    include: {
+      accounts: true,
+      sessions: true,
+      quests: true,
+    },
   });
-  return account;
+  return { state: true, message: 'User deleted' };
 }

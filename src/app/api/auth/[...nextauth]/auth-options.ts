@@ -47,7 +47,7 @@ export const authOptions: AuthOptions = {
   ],
   pages: {
     signIn: '/auth/login',
-    newUser: '/auth/signup',
+    newUser: '/auth/login',
   },
   session: {
     strategy: 'jwt',
@@ -80,9 +80,35 @@ export const authOptions: AuthOptions = {
       }
       return session;
     },
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account }) {
+      if (account && user) {
+        if (typeof user.email !== 'string') {
+          throw new Error('Invalid user email');
+        }
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+
+        if (existingUser) {
+          token.sub = existingUser.id;
+          token.email = existingUser.email;
+          token.name = existingUser.name;
+        } else {
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name,
+            },
+          });
+
+          token.sub = newUser.id;
+          token.email = newUser.email;
+          token.name = newUser.name;
+        }
+      } else if (user) {
         token.sub = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },

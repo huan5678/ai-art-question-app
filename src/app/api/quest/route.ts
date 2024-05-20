@@ -1,65 +1,31 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { type NextRequest, NextResponse } from 'next/server';
 
-import { authOptions } from '../auth/[...nextauth]/auth-options';
-
-import prisma from '@/lib/prisma';
+import {
+  createQuest,
+  deleteQuest,
+  getQuests,
+  updateQuest,
+} from '@/actions/quest-actions';
 
 export async function GET() {
-  const quests = await prisma.quest.findMany();
+  const quests = await getQuests();
   return NextResponse.json(quests);
 }
 
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const userId = session.user.id;
-  const { title, description, categoryId } = await request.json();
-
-  // 查找預設 Category，如果不存在，則創建
-  let defaultCategory = await prisma.category.findUnique({
-    where: { name: 'unCategory' },
-  });
-
-  if (!defaultCategory) {
-    defaultCategory = await prisma.category.create({
-      data: { name: 'unCategory' },
-    });
-  }
-
-  const quest = await prisma.quest.create({
-    data: {
-      title,
-      description,
-      userId,
-      categoryId: categoryId || defaultCategory.id,
-    },
-  });
-
+export async function POST(request: NextRequest) {
+  const input = await request.json();
+  const quest = await createQuest(input);
   return NextResponse.json(quest);
 }
 
-export async function PUT(request: Request) {
-  const url = new URL(request.url);
-  const id = url.pathname.split('/').pop();
-  const { title, description, categoryId } = await request.json();
-  const quest = await prisma.quest.update({
-    where: { id: String(id) },
-    data: {
-      title,
-      description,
-      categoryId,
-    },
-  });
+export async function PATCH(request: NextRequest) {
+  const input = await request.json();
+  const quest = await updateQuest(input);
   return NextResponse.json(quest);
 }
 
-export async function DELETE(request: Request) {
-  const url = new URL(request.url);
-  const id = url.pathname.split('/').pop();
-  await prisma.quest.delete({ where: { id: String(id) } });
-  return NextResponse.json({ message: 'Quest deleted' });
+export async function DELETE(request: NextRequest) {
+  const { id } = await request.json();
+  const quest = await deleteQuest(id);
+  return NextResponse.json(quest);
 }

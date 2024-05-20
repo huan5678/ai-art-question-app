@@ -2,8 +2,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Quest } from '@prisma/client';
 import { motion } from 'framer-motion';
+import { useLocalStorage } from 'usehooks-ts';
 
 import Confetti from '@/components/Confetti';
+import { Icons } from '@/components/icons';
 import Setup from '@/components/setup';
 import StringSpinner from '@/components/StringSpinner';
 import { Button } from '@/components/ui/button';
@@ -29,12 +31,12 @@ const Home = () => {
   const [quests] = useQuestStore((state) => [state.quests]);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
+  const [localStorageSelectedQuests, setLocalStorageSelectedQuests] =
+    useLocalStorage('selectedQuests', [] as Quest[]);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   const [isSelected, setIsSelected] = useState<Quest[]>(
-    localStorage.getItem('selectedQuests')
-      ? JSON.parse(localStorage.getItem('selectedQuests') as string)
-      : []
+    localStorageSelectedQuests || []
   );
   // 過濾出未選中的項目
   const unselectedData = useMemo(
@@ -77,9 +79,10 @@ const Home = () => {
         newSelectedQuests.push(selectedData);
       }
       setSelectedQuests(newSelectedQuests);
+      setLocalStorageSelectedQuests(JSON.stringify(newSelectedQuests));
       setOpenDialog(true);
     },
-    [quests, selectedQuests, setSelectedQuests]
+    [quests, selectedQuests, setSelectedQuests, setLocalStorageSelectedQuests]
   );
 
   const startPickup = () => {
@@ -126,15 +129,15 @@ const Home = () => {
   }, [isSelected]);
   return (
     <div>
-      <section className="space-y-4 py-24">
-        <h1 className="text-center text-3xl font-bold tracking-wide text-white">
+      <section className="py-24 space-y-4">
+        <h1 className="text-3xl font-bold tracking-wide text-center text-white">
           {title.mainTitle}
         </h1>
-        <h2 className="text-center text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-center text-white">
           {title.subTitle}
         </h2>
       </section>
-      <section className="bg-background container flex flex-col justify-between gap-4 rounded-2xl p-8">
+      <section className="container flex flex-col justify-between gap-4 p-8 bg-background rounded-2xl">
         {selectedQuests.length === 0 && (
           <div className="flex flex-col items-end gap-2">
             <p>
@@ -150,12 +153,13 @@ const Home = () => {
               onClick={startPickup}
               disabled={quests.length <= drawCount || isSpinning}
             >
+              <Icons.pickup className="mr-2 size-6" />
               隨機抽選
             </Button>
           </div>
         )}
         {isSpinning && <StringSpinner strings={quests} />}
-        <div className="mx-auto flex w-full flex-col gap-4">
+        <div className="flex flex-col w-full gap-4 mx-auto">
           <Dialog open={openDialog} onOpenChange={setOpenDialog}>
             <DialogContent>
               <DialogHeader>
@@ -173,13 +177,13 @@ const Home = () => {
           </Dialog>
           {selectedQuests.length > 0 && (
             <div>
-              <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
-              <ul className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4">
-                <motion.li className="bg-primary rounded-xl px-6 py-4 text-center text-lg md:text-6xl">
+              <h3 className="mb-2 text-2xl text-center">本次獲選的是</h3>
+              <ul className="flex flex-col max-w-screen-lg gap-4 mx-auto mb-2">
+                <motion.li className="px-6 py-4 text-lg text-center bg-primary rounded-xl md:text-6xl">
                   {selectedQuests[0].title}
                 </motion.li>
               </ul>
-              <div className="flex w-full justify-end">
+              <div className="flex justify-end w-full">
                 <Button
                   type="button"
                   variant="outline"
@@ -199,7 +203,7 @@ const Home = () => {
           <div className="flex justify-end">
             <Dialog>
               <DialogTrigger>
-                <div className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                <div className="flex items-center justify-center h-10 px-4 py-2 text-sm font-medium transition-colors rounded-md ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
                   察看歷史項目
                 </div>
               </DialogTrigger>

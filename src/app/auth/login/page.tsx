@@ -15,27 +15,41 @@ import {
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { passwordCheck } from '@/lib/utils';
 
-const signUpSchema = z.object({
-  email: z.string().email(),
-  password: z
-    .string()
-    .min(8)
-    .refine(passwordCheck, { message: '請輸入至少8個字元的密碼' }),
-  confirmPassword: z
-    .string()
-    .min(8)
-    .refine(passwordCheck, { message: '請輸入相同的密碼' }),
-});
+const signUpSchema = z
+  .object({
+    email: z.string().email('請輸入有效的email'),
+    password: z.string().refine(passwordCheck, {
+      message:
+        '密碼至少需要8個字符，包含至少一個大寫字母、一個小寫字母、一個數字和一個特殊字符',
+    }),
+    confirmPassword: z.string().min(8, { message: '密碼至少需要8個字符' }),
+  })
+  .refine(
+    (data) => {
+      const { password, confirmPassword } = data;
+      return password === confirmPassword;
+    },
+    {
+      message: '請輸入相同的密碼',
+      path: ['confirmPassword'],
+    }
+  );
 
 const signInSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().email('請輸入有效的email'),
+  password: z.string().min(1, { message: '請輸入密碼' }),
 });
 
 type SignUpSchema = z.infer<typeof signUpSchema>;
@@ -64,19 +78,22 @@ const Page = () => {
   const {
     control: signUpControl,
     handleSubmit: signUpHandleSubmit,
-    formState: { errors: signUpErrors },
+    formState: signUpFormState,
   } = signUpForm;
 
   const signInForm = useForm<SignInSchema>({
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(signInSchema, {}, { raw: true }),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  const { control: signInControl, handleSubmit: signInHandleSubmit } =
-    signInForm;
+  const {
+    control: signInControl,
+    handleSubmit: signInHandleSubmit,
+    formState: signInFormState,
+  } = signInForm;
 
   useEffect(() => {
     getProviders().then((providers) => {
@@ -138,9 +155,9 @@ const Page = () => {
 
   return (
     <section className="container grid h-screen place-items-center">
-      <div className="bg-background flex w-full max-w-4xl flex-col justify-between overflow-hidden rounded-lg md:flex-row">
+      <div className="flex flex-col justify-between w-full max-w-4xl overflow-hidden rounded-lg bg-background md:flex-row">
         <div className="order-2 space-y-6 p-6 md:order-1 md:min-h-[60vh] md:w-1/2 md:p-12">
-          <h1 className="text-center text-xl font-bold md:text-3xl">
+          <h1 className="text-xl font-bold text-center md:text-3xl">
             {isSignUp ? '後台系統註冊' : '後台系統登入'}
           </h1>
           {isSignUp ? (
@@ -154,17 +171,16 @@ const Page = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <Label htmlFor="email" className="md:text-lg">
-                        email
-                      </Label>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
-                          id="email"
                           type="email"
                           placeholder="email"
+                          disabled={signUpFormState.isSubmitting}
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -173,17 +189,17 @@ const Page = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <Label htmlFor="password" className="md:text-lg">
-                        Password
-                      </Label>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input
                           id="password"
                           type="password"
                           placeholder="Password"
+                          disabled={signUpFormState.isSubmitting}
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -192,28 +208,28 @@ const Page = () => {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <Label htmlFor="confirmPassword" className="md:text-lg">
-                        Confirm Password
-                      </Label>
+                      <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
                         <Input
                           id="confirmPassword"
                           type="password"
                           placeholder="Confirm Password"
+                          disabled={signUpFormState.isSubmitting}
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
-                {signUpErrors.confirmPassword && (
-                  <p className="text-red-500">
-                    {signUpErrors.confirmPassword.message}
-                  </p>
-                )}
                 {error && <p className="text-red-500">{error}</p>}
-                <Button type="submit" variant="default" className="w-full">
-                  Sign Up
+                <Button
+                  type="submit"
+                  variant="default"
+                  className="w-full"
+                  disabled={signUpFormState.isSubmitting}
+                >
+                  {signUpFormState.isSubmitting ? 'Loading...' : '註冊'}
                 </Button>
                 <p className="text-center">
                   已有帳號？{' '}
@@ -234,17 +250,17 @@ const Page = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <Label htmlFor="email" className="md:text-lg">
-                        email
-                      </Label>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
                           id="email"
                           type="email"
                           placeholder="email"
+                          disabled={signInFormState.isSubmitting}
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -253,23 +269,28 @@ const Page = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <Label htmlFor="password" className="md:text-lg">
-                        Password
-                      </Label>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input
                           id="password"
                           type="password"
                           placeholder="Password"
+                          disabled={signInFormState.isSubmitting}
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 {error && <p className="text-red-500">{error}</p>}
-                <Button type="submit" variant="default" className="w-full">
-                  Login
+                <Button
+                  type="submit"
+                  variant="default"
+                  className="w-full"
+                  disabled={signInFormState.isSubmitting}
+                >
+                  {signInFormState.isSubmitting ? 'Loading...' : '登入'}
                 </Button>
                 <p className="text-center">
                   尚無帳號？{' '}
@@ -283,7 +304,7 @@ const Page = () => {
           <div className="mt-6">
             {providers &&
               Object.values(providers).map((provider) => {
-                if (provider.name === 'Credentials' && isSignUp) return null;
+                if (provider.name === 'Credentials') return null;
                 return (
                   <div key={provider.name} className="mt-2">
                     <Button
@@ -298,13 +319,13 @@ const Page = () => {
               })}
           </div>
         </div>
-        <div className="relative order-1 flex h-24 flex-col items-center justify-center md:order-2 md:h-auto md:w-1/2">
+        <div className="relative flex flex-col items-center justify-center order-1 h-24 md:order-2 md:h-auto md:w-1/2">
           <Image
             src="https://images.unsplash.com/photo-1641156803026-0b819059b04d?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             width={1932}
             height={1218}
             alt="login"
-            className="absolute inset-0 size-full object-cover"
+            className="absolute inset-0 object-cover size-full"
           />
         </div>
       </div>
