@@ -21,10 +21,10 @@ function verifyToken(token: string): SessionPayload | null {
 }
 
 export function middleware(req: NextRequest) {
-  const sessionToken = req.cookies.get('session')?.value;
+  const sessionToken = req.cookies.get('next-auth.session-token')?.value;
 
   if (!sessionToken) {
-    return NextResponse.redirect(new URL('/auth/signup', req.url));
+    return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
   const session = verifyToken(sessionToken);
@@ -37,5 +37,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/*'], // 更新這裡來匹配需要應用 middleware 的路由
+  matcher: ['/admin'], // 更新這裡來匹配需要應用 middleware 的路由
 };

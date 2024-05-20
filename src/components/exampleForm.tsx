@@ -41,11 +41,7 @@ export const SiteForm = () => {
 
   // Expose the handleSubmit and control properties
   // from the useForm() hook
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = form;
+  const { handleSubmit, control } = form;
 
   // For now, we'll just console log the form values
   // when the form is submitted
