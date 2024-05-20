@@ -141,7 +141,7 @@ const Page = () => {
     });
     if (result?.ok) {
       toast({ description: 'Sign in successfully' });
-      router.push('/');
+      router.push('/admin');
       return;
     }
 
@@ -155,9 +155,9 @@ const Page = () => {
 
   return (
     <section className="container grid h-screen place-items-center">
-      <div className="flex flex-col justify-between w-full max-w-4xl overflow-hidden rounded-lg bg-background md:flex-row">
+      <div className="bg-background flex w-full max-w-4xl flex-col justify-between overflow-hidden rounded-lg md:flex-row">
         <div className="order-2 space-y-6 p-6 md:order-1 md:min-h-[60vh] md:w-1/2 md:p-12">
-          <h1 className="text-xl font-bold text-center md:text-3xl">
+          <h1 className="text-center text-xl font-bold md:text-3xl">
             {isSignUp ? '後台系統註冊' : '後台系統登入'}
           </h1>
           {isSignUp ? (
@@ -319,13 +319,13 @@ const Page = () => {
               })}
           </div>
         </div>
-        <div className="relative flex flex-col items-center justify-center order-1 h-24 md:order-2 md:h-auto md:w-1/2">
+        <div className="relative order-1 flex h-24 flex-col items-center justify-center md:order-2 md:h-auto md:w-1/2">
           <Image
             src="https://images.unsplash.com/photo-1641156803026-0b819059b04d?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             width={1932}
             height={1218}
             alt="login"
-            className="absolute inset-0 object-cover size-full"
+            className="absolute inset-0 size-full object-cover"
           />
         </div>
       </div>

@@ -26,7 +26,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -80,7 +86,7 @@ const CategoryInput: FC<CategoryInputProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex items-center gap-4">
           {categories && categories.length > 0 && <h2>題組資料集</h2>}
           {categories?.map((category) => (
@@ -95,8 +101,8 @@ const CategoryInput: FC<CategoryInputProps> = ({
                   <DialogTrigger asChild>
                     <DropdownMenuItem
                       onSelect={(e) => {
+                        e.preventDefault();
                         setEditCategory(category);
-                        return e.preventDefault();
                       }}
                     >
                       編輯
@@ -107,23 +113,23 @@ const CategoryInput: FC<CategoryInputProps> = ({
                       <DialogTitle>{editCategory?.name}</DialogTitle>
                       <DialogClose />
                     </DialogHeader>
-                    <DialogDescription>
-                      <Label htmlFor={editCategory?.id}>編輯題庫名稱</Label>
-                      <Input
-                        id={editCategory?.id}
-                        type="text"
-                        defaultValue={editCategory?.name}
-                        value={editCategory?.name}
-                        className="disabled:pointer-events-none disabled:opacity-20"
-                        disabled={isPending}
-                        onChange={(e) => {
-                          setEditCategory({
-                            ...category,
-                            name: e.target.value,
-                          });
-                        }}
-                      />
-                    </DialogDescription>
+                    <DialogDescription>請輸入新的題庫名稱</DialogDescription>
+                    <Label htmlFor={editCategory?.id}>編輯題庫名稱</Label>
+                    <Input
+                      id={editCategory?.id}
+                      type="text"
+                      defaultValue={editCategory?.name}
+                      value={editCategory?.name}
+                      className="disabled:pointer-events-none disabled:opacity-20"
+                      disabled={isPending}
+                      onChange={(e) => {
+                        setEditCategory({
+                          ...category,
+                          name: e.target.value,
+                        });
+                      }}
+                    />
+
                     <DialogFooter>
                       <Button type="button" onClick={handleUpdateCategory}>
                         送出
@@ -148,7 +154,7 @@ const CategoryInput: FC<CategoryInputProps> = ({
                       <DialogClose />
                     </DialogHeader>
                     <DialogDescription>
-                      <p>確定要刪除此題庫名稱？</p>
+                      確定要刪除此題庫名稱？
                     </DialogDescription>
                     <DialogFooter>
                       <Button
@@ -175,7 +181,7 @@ const CategoryInput: FC<CategoryInputProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-4 py-4"
+          className="mb-4 space-y-4"
         >
           <motion.li
             initial={{ y: -50, opacity: 0 }}
@@ -189,6 +195,7 @@ const CategoryInput: FC<CategoryInputProps> = ({
               name="category"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>題庫名稱</FormLabel>
                   <FormControl>
                     <Input
                       id="category"
@@ -201,15 +208,11 @@ const CategoryInput: FC<CategoryInputProps> = ({
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full md:w-auto"
-            >
-              新增題庫名稱到資料庫
-            </Button>
           </motion.li>
         </motion.ul>
+        <Button type="submit" disabled={isPending} className="w-full md:w-auto">
+          新增題庫名稱到資料庫
+        </Button>
       </form>
     </Form>
   );

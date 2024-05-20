@@ -1,3 +1,4 @@
+import { Navbar } from '@/components/navbar/navbar';
 import AuthProvider from '@/provider/authProvider';
 
 export default function AdminLayout({
@@ -7,7 +8,10 @@ export default function AdminLayout({
 }) {
   return (
     <AuthProvider>
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <Navbar />
+        {children}
+      </main>
     </AuthProvider>
   );
 }

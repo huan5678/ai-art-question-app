@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { SignInButton } from '@/components/navbar/sign-in-button';
-
 export const Navbar = () => {
   const pathname = usePathname();
 
@@ -12,20 +10,17 @@ export const Navbar = () => {
 
   return (
     showNavbar && (
-      <header className="w-full border-b">
-        <div className="container flex h-16 items-center justify-between">
-          <Link
-            href="/"
-            className="font-mono text-lg font-bold text-gray-300 decoration-transparent underline-offset-8 transition duration-300 ease-in-out hover:text-white hover:underline hover:decoration-white"
-          >
-            回抽選系統
-          </Link>
-          <h2 className="text-center text-3xl font-bold text-white">
+      <header className="relative w-full border-b py-4">
+        <Link
+          href="/"
+          className="absolute left-4 top-10 -translate-y-6 font-mono font-bold text-gray-300 decoration-transparent underline-offset-8 transition duration-300 ease-in-out hover:text-white hover:underline hover:decoration-white md:text-lg"
+        >
+          回抽選系統
+        </Link>
+        <div className="container flex items-center justify-between">
+          <h2 className="mx-auto text-center text-lg font-bold text-white md:text-3xl">
             後台管理系統
           </h2>
-          <div className="flex items-center gap-2">
-            <SignInButton />
-          </div>
         </div>
       </header>
     )

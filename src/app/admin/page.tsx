@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import type { Category, Quest } from '@prisma/client';
 import { useQuery } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
 
 import CategoryInput from '@/components/input/categoryInput';
 import QuestInput from '@/components/input/questInput';
@@ -17,7 +16,6 @@ import useMutationHandler from '@/hooks/useMutationHandler';
 import useQuestStore from '@/stores/questStore';
 
 const Page = () => {
-  const { data: session } = useSession();
   const [quests, categories, setQuests, setCategories] = useQuestStore(
     (state) => [
       state.quests,
@@ -27,11 +25,11 @@ const Page = () => {
     ]
   );
 
-  console.log(session);
-  console.log(quests);
-
   const handleCreateQuest = useMutationHandler<
-    { title: string; description: string; categoryId: string }[],
+    {
+      data: { title: string; description: string; categoryId: string }[];
+      userId: string;
+    },
     Quest[]
   >({
     url: '/api/quest',
@@ -54,9 +52,8 @@ const Page = () => {
     method: 'PATCH',
     options: {
       onSuccess: (data) => {
-        setQuests((prev: Quest[]) =>
-          prev.map((q) => (q.id === data.id ? data : q))
-        );
+        const currentQuests = quests;
+        setQuests(currentQuests.map((q) => (q.id === data.id ? data : q)));
       },
       onError: (error) => {
         console.error(error);
@@ -69,7 +66,8 @@ const Page = () => {
     method: 'DELETE',
     options: {
       onSuccess: (data) => {
-        setQuests((prev: Quest[]) => prev.filter((q) => q.id !== data.id));
+        const currentQuests = quests;
+        setQuests(currentQuests.filter((q) => q.id !== data.id));
       },
       onError: (error) => {
         console.error(error);
@@ -98,8 +96,9 @@ const Page = () => {
     method: 'PATCH',
     options: {
       onSuccess: (data) => {
-        setCategories((prev: Category[]) =>
-          prev.map((c) => (c.id === data.id ? data : c))
+        const currentCategories = categories;
+        setCategories(
+          currentCategories.map((c) => (c.id === data.id ? data : c))
         );
       },
       onError: (error) => {
@@ -113,9 +112,8 @@ const Page = () => {
     method: 'DELETE',
     options: {
       onSuccess: (data) => {
-        setCategories((prev: Category[]) =>
-          prev.filter((c) => c.id !== data.id)
-        );
+        const currentCategories = categories;
+        setCategories(currentCategories.filter((c) => c.id !== data.id));
       },
       onError: (error) => {
         console.error(error);
@@ -127,7 +125,8 @@ const Page = () => {
     queryKey: ['quests'],
     queryFn: async () => {
       const response = await fetch('/api/quest');
-      return response.json();
+      const { result } = await response.json();
+      return result.quests;
     },
   });
 
@@ -135,7 +134,8 @@ const Page = () => {
     queryKey: ['categories'],
     queryFn: async () => {
       const response = await fetch('/api/category');
-      return response.json();
+      const { result } = await response.json();
+      return result.categories;
     },
   });
 
@@ -153,8 +153,9 @@ const Page = () => {
               <span className="md:text-lg">題目設定</span>
             </AccordionTrigger>
             {questsStatus === 'success' && (
-              <AccordionContent className="p-4">
+              <AccordionContent className="px-2">
                 <QuestInput
+                  quests={quests}
                   categories={categories}
                   onCreateQuest={handleCreateQuest.mutate}
                   isCreatePending={handleCreateQuest.isPending}
@@ -169,7 +170,7 @@ const Page = () => {
               <span className="md:text-lg">題組設定</span>
             </AccordionTrigger>
             {categoriesStatus === 'success' && (
-              <AccordionContent className="p-4">
+              <AccordionContent className="px-2">
                 <CategoryInput
                   categories={categories}
                   onCreateCategory={handleCreateCategory.mutate}

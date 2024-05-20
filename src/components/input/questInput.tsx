@@ -3,15 +3,21 @@
 import type { FC } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { Category } from '@prisma/client';
 import { motion } from 'framer-motion';
 import { PlusCircle, X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -19,32 +25,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-interface QuestInputProps {
-  categories: Category[];
-  onCreateQuest: (data: QuestInputState[]) => void;
-  isCreatePending: boolean;
-  isUpdatePending: boolean;
-  isDeletePending: boolean;
-}
-
-interface QuestInputState {
-  title: string;
-  description: string;
-  categoryId: string;
-}
+import type { IQuestInputProps, IQuestInputState } from '@/types/quest';
 
 const questInputSchema = z.object({
   quests: z.array(
     z.object({
-      title: z.string().min(1),
+      title: z.string().min(1, '請輸入題目名稱'),
       description: z.string().optional(),
       categoryId: z.string().optional(),
     })
   ),
 });
 
-const QuestInput: FC<QuestInputProps> = ({
+const QuestInput: FC<IQuestInputProps> = ({
+  quests,
   categories,
   onCreateQuest,
   isCreatePending,
@@ -64,8 +58,10 @@ const QuestInput: FC<QuestInputProps> = ({
     name: 'quests',
   });
 
-  const onSubmit = (data: { quests: QuestInputState[] }) => {
-    onCreateQuest(data.quests);
+  const { data: session } = useSession();
+
+  const onSubmit = (data: { quests: IQuestInputState[] }) => {
+    onCreateQuest({ data: data.quests, userId: session?.user?.id as string });
     reset();
   };
 
@@ -73,9 +69,14 @@ const QuestInput: FC<QuestInputProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+        {quests && quests.length > 0 && (
+          <div>
+            <h2 className="text-lg">已有題目 ({quests.length})</h2>
+          </div>
+        )}
         <motion.ul
-          className="space-y-4 py-4"
+          className="space-y-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -87,19 +88,14 @@ const QuestInput: FC<QuestInputProps> = ({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
               transition={{ duration: 0.5, delay: index * 0.3 }}
-              className="flex flex-wrap gap-4 md:flex-nowrap md:items-end"
+              className="grid gap-4 md:grid-cols-4"
             >
               <FormField
                 control={control}
                 name={`quests.${index}.title`}
                 render={({ field }) => (
                   <FormItem className="w-full md:w-auto md:flex-1">
-                    <Label
-                      htmlFor={`title-${index}`}
-                      className="whitespace-nowrap text-center text-lg"
-                    >
-                      題目名稱
-                    </Label>
+                    <FormLabel>題目名稱</FormLabel>
                     <FormControl>
                       <Input
                         id={`title-${index}`}
@@ -109,6 +105,7 @@ const QuestInput: FC<QuestInputProps> = ({
                         disabled={isPending}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -117,12 +114,7 @@ const QuestInput: FC<QuestInputProps> = ({
                 name={`quests.${index}.description`}
                 render={({ field }) => (
                   <FormItem className="w-full md:w-auto md:flex-1">
-                    <Label
-                      htmlFor={`description-${index}`}
-                      className="whitespace-nowrap text-center text-lg"
-                    >
-                      題目描述
-                    </Label>
+                    <FormLabel>題目描述</FormLabel>
                     <FormControl>
                       <Input
                         id={`description-${index}`}
@@ -132,6 +124,7 @@ const QuestInput: FC<QuestInputProps> = ({
                         disabled={isPending}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -140,12 +133,7 @@ const QuestInput: FC<QuestInputProps> = ({
                 name={`quests.${index}.categoryId`}
                 render={({ field }) => (
                   <FormItem>
-                    <Label
-                      htmlFor={`category-${index}`}
-                      className="whitespace-nowrap text-center text-lg"
-                    >
-                      題組
-                    </Label>
+                    <FormLabel>題組</FormLabel>
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
@@ -170,34 +158,37 @@ const QuestInput: FC<QuestInputProps> = ({
                         </SelectContent>
                       </Select>
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-              {fields.length - 1 !== index && (
-                <Button
-                  variant="destructive"
-                  onClick={() => remove(index)}
-                  disabled={isPending}
-                  className="disabled:pointer-events-none disabled:opacity-20"
-                >
-                  <X className="me-2 size-6" />
-                  刪除項目
-                </Button>
-              )}
-              {fields.length - 1 === index && (
-                <Button
-                  type="button"
-                  variant={'secondary'}
-                  onClick={() =>
-                    append({ title: '', description: '', categoryId: '' })
-                  }
-                  disabled={isPending}
-                  className="disabled:pointer-events-none disabled:opacity-20"
-                >
-                  <PlusCircle className="me-2 size-6" />
-                  增加項目
-                </Button>
-              )}
+              <div className="flex items-center justify-end gap-2">
+                {fields.length - 1 !== index && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => remove(index)}
+                    disabled={isPending}
+                    className="disabled:pointer-events-none disabled:opacity-20"
+                  >
+                    <X className="me-2 size-6" />
+                    刪除項目
+                  </Button>
+                )}
+                {fields.length - 1 === index && (
+                  <Button
+                    type="button"
+                    variant={'secondary'}
+                    onClick={() =>
+                      append({ title: '', description: '', categoryId: '' })
+                    }
+                    disabled={isPending}
+                    className="disabled:pointer-events-none disabled:opacity-20"
+                  >
+                    <PlusCircle className="me-2 size-6" />
+                    增加項目
+                  </Button>
+                )}
+              </div>
             </motion.li>
           ))}
         </motion.ul>

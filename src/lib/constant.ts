@@ -7,9 +7,6 @@ export const siteConfig = {
   keywords: [
     'Next.js',
     'React',
-    'Next.js starter',
-    'Next.js boilerplate',
-    'Starter Template',
     'Tailwind CSS',
     'TypeScript',
     'Shadcn/ui',

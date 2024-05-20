@@ -17,13 +17,14 @@ export async function createQuest(input: {
   if (!input.userId) {
     return Error('User ID is required');
   }
-  const quest = await prisma.quest.create({
+  await prisma.quest.create({
     data: input,
   });
+  const quests = await prisma.quest.findMany();
   return {
     state: true,
     message: 'Quest created',
-    result: { quest },
+    result: { quests },
   };
 }
 

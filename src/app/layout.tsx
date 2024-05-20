@@ -5,7 +5,6 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 
 import { Footer } from '@/components/footer';
-import { Navbar } from '@/components/navbar/navbar';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/lib/constant';
@@ -66,7 +65,6 @@ const RootLayout = ({ children }: PropsWithChildren) => {
               className="z-[-1]"
             />
             <ThemeProvider attribute="class" defaultTheme="light">
-              <Navbar />
               {children}
               <Footer />
               <Toaster />

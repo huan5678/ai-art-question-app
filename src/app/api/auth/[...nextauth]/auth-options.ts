@@ -1,4 +1,5 @@
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import type { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt, { type JwtPayload } from 'jsonwebtoken';
 import type { AuthOptions } from 'next-auth';
@@ -36,8 +37,8 @@ export const authOptions: AuthOptions = {
           );
           return {
             id: user.id,
-            name: user.name,
             email: user.email,
+            role: user.role,
             sessionToken,
           };
         }
@@ -58,7 +59,7 @@ export const authOptions: AuthOptions = {
     encode: async ({ secret, token }: JWTEncodeParams) => {
       const jwtClaims = {
         sub: token?.sub,
-        name: token?.name,
+        role: token?.role,
         email: token?.email,
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
@@ -92,23 +93,22 @@ export const authOptions: AuthOptions = {
         if (existingUser) {
           token.sub = existingUser.id;
           token.email = existingUser.email;
-          token.name = existingUser.name;
+          token.role = existingUser.role;
         } else {
           const newUser = await prisma.user.create({
             data: {
               email: user.email,
-              name: user.name,
             },
           });
 
           token.sub = newUser.id;
           token.email = newUser.email;
-          token.name = newUser.name;
+          token.role = newUser.role;
         }
       } else if (user) {
         token.sub = user.id;
         token.email = user.email;
-        token.name = user.name;
+        token.role = (user as User).role;
       }
       return token;
     },
