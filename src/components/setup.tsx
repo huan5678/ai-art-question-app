@@ -111,7 +111,7 @@ const Setup = () => {
                       }
                     />
                   </div>
-                  <div>
+                  <div className="flex flex-col justify-between">
                     <h3 className="text-center text-lg">選擇題組</h3>
                     <div className="flex gap-4">
                       {categories.map((category) => (

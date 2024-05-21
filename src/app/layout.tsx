@@ -54,7 +54,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
         <ReactQueryClientProvider>
           <div
             className={cn(
-              'relative h-screen bg-gradient-to-b from-black/90 via-black/10 to-black/90'
+              'relative bg-gradient-to-b from-black/90 via-black/10 to-black/90'
             )}
           >
             <Image

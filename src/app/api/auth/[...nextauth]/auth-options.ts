@@ -1,21 +1,24 @@
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import type { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import jwt, { type JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import type { AuthOptions } from 'next-auth';
-import type { JWTDecodeParams, JWTEncodeParams } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 
 import { env } from '@/env.mjs';
 import prisma from '@/lib/prisma';
 
+const SECRET_KEY = env.NEXTAUTH_SECRET as string;
+const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID as string;
+const GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET as string;
+
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID as string,
-      clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
     }),
     CredentialsProvider({
       name: 'Credentials',
@@ -29,10 +32,16 @@ export const authOptions: AuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email },
         });
-        if (user && bcrypt.compareSync(password, user.hashedPassword || '')) {
+        if (!user) {
+          throw new Error('Invalid credentials');
+        }
+        if (!user.hashedPassword) {
+          throw new Error('User has not set a password');
+        }
+        if (user && bcrypt.compareSync(password, user.hashedPassword)) {
           const sessionToken = jwt.sign(
             { id: user.id, role: user.role },
-            env.NEXTAUTH_SECRET as string,
+            SECRET_KEY,
             { expiresIn: '30d' }
           );
           return {
@@ -54,10 +63,11 @@ export const authOptions: AuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60,
   },
-  secret: env.NEXTAUTH_SECRET,
+  secret: SECRET_KEY,
   jwt: {
-    encode: async ({ secret, token }: JWTEncodeParams) => {
+    encode: async ({ secret, token }) => {
       const jwtClaims = {
+        id: token?.id,
         sub: token?.sub,
         role: token?.role,
         email: token?.email,
@@ -66,10 +76,19 @@ export const authOptions: AuthOptions = {
       };
       return jwt.sign(jwtClaims, secret);
     },
-    decode: async ({ secret, token }: JWTDecodeParams) => {
+    decode: async ({ token, secret }) => {
       try {
-        return jwt.verify(token || '', secret) as JwtPayload;
+        if (!token) return null;
+        const decoded = jwt.verify(token, secret) as jwt.JwtPayload;
+        return {
+          id: decoded.id,
+          sub: decoded.sub,
+          name: decoded.name,
+          email: decoded.email,
+          role: decoded.role,
+        } as jwt.JwtPayload & { id: string; role: string };
       } catch (error) {
+        console.error('JWT decoding failed:', error);
         return null;
       }
     },
@@ -77,37 +96,17 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (token?.sub) {
-        session.user.id = token.sub;
+        session.user = {
+          ...session.user,
+          id: token.sub,
+          role: token.role,
+        };
       }
       return session;
     },
-    async jwt({ token, user, account }) {
-      if (account && user) {
-        if (typeof user.email !== 'string') {
-          throw new Error('Invalid user email');
-        }
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-
-        if (existingUser) {
-          token.sub = existingUser.id;
-          token.email = existingUser.email;
-          token.role = existingUser.role;
-        } else {
-          const newUser = await prisma.user.create({
-            data: {
-              email: user.email,
-            },
-          });
-
-          token.sub = newUser.id;
-          token.email = newUser.email;
-          token.role = newUser.role;
-        }
-      } else if (user) {
+    async jwt({ token, user }) {
+      if (user) {
         token.sub = user.id;
-        token.email = user.email;
         token.role = (user as User).role;
       }
       return token;

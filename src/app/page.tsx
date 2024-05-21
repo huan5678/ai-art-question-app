@@ -119,26 +119,21 @@ const Home = () => {
     localStorage.setItem('selectedQuests', JSON.stringify(isSelected));
   }, [isSelected]);
   return (
-    <div>
-      <section className="space-y-4 py-24">
-        <h1 className="text-center text-3xl font-bold tracking-wide text-white">
-          {title.mainTitle}
-        </h1>
-        <h2 className="text-center text-2xl font-bold text-white">
-          {title.subTitle}
-        </h2>
-      </section>
-      <section className="bg-background container flex flex-col justify-between gap-4 rounded-2xl p-8">
+    <div className="relative flex h-screen flex-col py-4 md:py-8">
+      <h1 className="text-center text-[4vmax] font-black text-white/50 md:text-[8vmax] dark:text-white">
+        2024 台灣 AI 生成大賽
+      </h1>
+      <div className="flex -translate-y-6 justify-center gap-4 text-lg text-white/50 md:text-6xl dark:text-white">
+        <p>{title.mainTitle}</p>
+        <p>{title.subTitle}</p>
+      </div>
+      <motion.section
+        layout
+        className="bg-background container relative z-10 flex flex-auto flex-col justify-between gap-4 rounded-2xl p-8"
+      >
         {selectedQuests.length === 0 && (
           <div className="flex flex-col items-end gap-2">
-            <p>
-              目前題目數:{' '}
-              {
-                quests?.filter(
-                  (quest) => !isSelected.some((q) => q.id === quest.id)
-                ).length
-              }
-            </p>
+            <p>目前題目數: {unselectedData?.length}</p>
             <Button
               type="button"
               onClick={startPickup}
@@ -211,8 +206,8 @@ const Home = () => {
             </Dialog>
           </div>
         )}
-        <Setup />
-      </section>
+      </motion.section>
+      <Setup />
     </div>
   );
 };
