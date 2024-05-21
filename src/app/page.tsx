@@ -28,7 +28,10 @@ const Home = () => {
       state.selectedQuests,
       state.setSelectedQuests,
     ]);
-  const [quests] = useQuestStore((state) => [state.quests]);
+  const [quests, questsList] = useQuestStore((state) => [
+    state.quests,
+    state.questsList,
+  ]);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const [localStorageSelectedQuests, setLocalStorageSelectedQuests] =
@@ -40,24 +43,12 @@ const Home = () => {
   );
   // 過濾出未選中的項目
   const unselectedData = useMemo(
-    () => quests.filter((quest) => !isSelected.some((q) => q.id === quest.id)),
-    [quests, isSelected]
+    () =>
+      questsList?.filter((quest) => !isSelected.some((q) => q.id === quest.id)),
+    [questsList, isSelected]
   );
 
   const animationFrameId = useRef<number | null>(null);
-
-  const getQuestion = async () => {
-    try {
-      const response = await fetch('/api/notion');
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const animate = () => {
     const update = () => {
@@ -79,7 +70,7 @@ const Home = () => {
         newSelectedQuests.push(selectedData);
       }
       setSelectedQuests(newSelectedQuests);
-      setLocalStorageSelectedQuests(JSON.stringify(newSelectedQuests));
+      setLocalStorageSelectedQuests(newSelectedQuests);
       setOpenDialog(true);
     },
     [quests, selectedQuests, setSelectedQuests, setLocalStorageSelectedQuests]
@@ -129,21 +120,21 @@ const Home = () => {
   }, [isSelected]);
   return (
     <div>
-      <section className="py-24 space-y-4">
-        <h1 className="text-3xl font-bold tracking-wide text-center text-white">
+      <section className="space-y-4 py-24">
+        <h1 className="text-center text-3xl font-bold tracking-wide text-white">
           {title.mainTitle}
         </h1>
-        <h2 className="text-2xl font-bold text-center text-white">
+        <h2 className="text-center text-2xl font-bold text-white">
           {title.subTitle}
         </h2>
       </section>
-      <section className="container flex flex-col justify-between gap-4 p-8 bg-background rounded-2xl">
+      <section className="bg-background container flex flex-col justify-between gap-4 rounded-2xl p-8">
         {selectedQuests.length === 0 && (
           <div className="flex flex-col items-end gap-2">
             <p>
               目前題目數:{' '}
               {
-                quests.filter(
+                quests?.filter(
                   (quest) => !isSelected.some((q) => q.id === quest.id)
                 ).length
               }
@@ -151,15 +142,15 @@ const Home = () => {
             <Button
               type="button"
               onClick={startPickup}
-              disabled={quests.length <= drawCount || isSpinning}
+              disabled={unselectedData?.length <= drawCount || isSpinning}
             >
               <Icons.pickup className="mr-2 size-6" />
               隨機抽選
             </Button>
           </div>
         )}
-        {isSpinning && <StringSpinner strings={quests} />}
-        <div className="flex flex-col w-full gap-4 mx-auto">
+        {isSpinning && <StringSpinner strings={unselectedData} />}
+        <div className="mx-auto flex w-full flex-col gap-4">
           <Dialog open={openDialog} onOpenChange={setOpenDialog}>
             <DialogContent>
               <DialogHeader>
@@ -177,13 +168,13 @@ const Home = () => {
           </Dialog>
           {selectedQuests.length > 0 && (
             <div>
-              <h3 className="mb-2 text-2xl text-center">本次獲選的是</h3>
-              <ul className="flex flex-col max-w-screen-lg gap-4 mx-auto mb-2">
-                <motion.li className="px-6 py-4 text-lg text-center bg-primary rounded-xl md:text-6xl">
+              <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
+              <ul className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4">
+                <motion.li className="bg-primary rounded-xl px-6 py-4 text-center text-lg md:text-6xl">
                   {selectedQuests[0].title}
                 </motion.li>
               </ul>
-              <div className="flex justify-end w-full">
+              <div className="flex w-full justify-end">
                 <Button
                   type="button"
                   variant="outline"
@@ -196,14 +187,11 @@ const Home = () => {
           )}
           {showConfetti && <Confetti />}
         </div>
-        <Button type="button" variant="outline" onClick={getQuestion}>
-          Call API
-        </Button>
         {isSelected.length > 0 && (
           <div className="flex justify-end">
             <Dialog>
               <DialogTrigger>
-                <div className="flex items-center justify-center h-10 px-4 py-2 text-sm font-medium transition-colors rounded-md ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                <div className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
                   察看歷史項目
                 </div>
               </DialogTrigger>

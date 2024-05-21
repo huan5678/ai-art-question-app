@@ -22,14 +22,18 @@ function verifyToken(token: string): SessionPayload | null {
 
 export function middleware(req: NextRequest) {
   const sessionToken = req.cookies.get('next-auth.session-token')?.value;
+  console.log('Session token:', sessionToken);
 
   if (!sessionToken) {
+    console.log('No session token found, redirecting to login');
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
   const session = verifyToken(sessionToken);
+  console.log('Session:', session);
 
   if (!session || session.role !== 'admin') {
+    console.log('Session invalid or not admin, redirecting to home');
     return NextResponse.redirect(new URL('/', req.url));
   }
 

@@ -16,7 +16,7 @@ export const Icons = {
   pickup: (props: LucideProps) => (
     <svg viewBox="0 0 64 64" {...props}>
       <title>Pickup Icon</title>
-      <g>
+      <g fill="currentColor">
         <path
           clip-rule="evenodd"
           d="m31.0583 23.6637c.1421-.398.5191-.6637.9417-.6637h10c.3252 0 .6301.1581.8174.424.1874.2658.2337.6061.1243.9123l-5 14c-.1421.398-.5191.6637-.9417.6637h-10c-.3252 0-.6301-.1581-.8174-.424-.1873-.2658-.2337-.6061-.1243-.9123z"

@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
 import type { Category, Quest } from '@prisma/client';
-import { useQuery } from '@tanstack/react-query';
 
 import CategoryInput from '@/components/input/categoryInput';
 import QuestInput from '@/components/input/questInput';
@@ -16,14 +14,21 @@ import useMutationHandler from '@/hooks/useMutationHandler';
 import useQuestStore from '@/stores/questStore';
 
 const Page = () => {
-  const [quests, categories, setQuests, setCategories] = useQuestStore(
-    (state) => [
-      state.quests,
-      state.categories,
-      state.setQuests,
-      state.setCategories,
-    ]
-  );
+  const [
+    quests,
+    categories,
+    setQuests,
+    setCategories,
+    questsStatus,
+    categoriesStatus,
+  ] = useQuestStore((state) => [
+    state.quests,
+    state.categories,
+    state.setQuests,
+    state.setCategories,
+    state.questsStatus,
+    state.categoriesStatus,
+  ]);
 
   const handleCreateQuest = useMutationHandler<
     {
@@ -120,29 +125,6 @@ const Page = () => {
       },
     },
   });
-
-  const { data: questsData, status: questsStatus } = useQuery({
-    queryKey: ['quests'],
-    queryFn: async () => {
-      const response = await fetch('/api/quest');
-      const { result } = await response.json();
-      return result.quests;
-    },
-  });
-
-  const { data: categoriesData, status: categoriesStatus } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const response = await fetch('/api/category');
-      const { result } = await response.json();
-      return result.categories;
-    },
-  });
-
-  useEffect(() => {
-    setQuests(questsData);
-    setCategories(categoriesData);
-  }, [questsData, categoriesData, setQuests, setCategories]);
 
   return (
     <section className="container max-w-2xl space-y-4 pt-12 md:max-w-6xl">

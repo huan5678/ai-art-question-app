@@ -5,12 +5,13 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 
 import { Footer } from '@/components/footer';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/lib/constant';
 import { fonts } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
+import ClientProvider from '@/provider/clientProvider';
 import { ReactQueryClientProvider } from '@/provider/ReactQueryClientProvider';
+import { ThemeProvider } from '@/provider/theme-provider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -53,7 +54,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
         <ReactQueryClientProvider>
           <div
             className={cn(
-              'relative min-h-screen bg-gradient-to-b from-black/90 via-black/10 to-black/90'
+              'relative h-screen bg-gradient-to-b from-black/90 via-black/10 to-black/90'
             )}
           >
             <Image
@@ -65,9 +66,10 @@ const RootLayout = ({ children }: PropsWithChildren) => {
               className="z-[-1]"
             />
             <ThemeProvider attribute="class" defaultTheme="light">
+              <ClientProvider />
               {children}
-              <Footer />
               <Toaster />
+              <Footer />
             </ThemeProvider>
           </div>
         </ReactQueryClientProvider>
