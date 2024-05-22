@@ -59,7 +59,7 @@ export const SiteForm = () => {
               Tell us about your new site to get started.
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-0 py-6 space-y-4">
+          <CardContent className="space-y-4 px-0 py-6">
             <FormField
               control={control}
               name="name"

@@ -4,6 +4,7 @@ import {
   LogOut,
   type LucideProps,
   Moon,
+  Plus,
   Sun,
 } from 'lucide-react';
 
@@ -13,6 +14,7 @@ export const Icons = {
   logOut: (props: LucideProps) => <LogOut {...props} />,
   home: (props: LucideProps) => <Dock {...props} />,
   layoutList: (props: LucideProps) => <LayoutList {...props} />,
+  plus: (props: LucideProps) => <Plus {...props} />,
   github: (props: LucideProps) => (
     <svg viewBox="0 0 438.549 438.549" {...props}>
       <title>GitHub Icon</title>

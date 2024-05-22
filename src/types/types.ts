@@ -1,4 +1,4 @@
-import type { Icons } from "@/components/icons";
+import type { Icons } from '@/components/icons';
 
 export interface ILink {
   url: string;

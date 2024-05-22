@@ -1,6 +1,6 @@
 import { Inter, JetBrains_Mono, Noto_Sans_TC } from 'next/font/google';
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 const fontSans = Noto_Sans_TC({
   subsets: ['latin'],
