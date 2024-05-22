@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
 import { checkUserRole } from '@/actions/account-actions';
-import Layout from '@/components/layout';
+import Layout from '@/components/Layout';
 import Sidebar from '@/components/Siderbar';
 import links from '@/mocks/links';
 import AuthProvider from '@/provider/authProvider';
