@@ -2,9 +2,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Quest } from '@prisma/client';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useLocalStorage } from 'usehooks-ts';
 
 import Confetti from '@/components/Confetti';
+import Footer from '@/components/footer';
 import { Icons } from '@/components/icons';
 import Setup from '@/components/setup';
 import StringSpinner from '@/components/StringSpinner';
@@ -17,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
 import useConfigurationStore from '@/stores/setupStore';
 
@@ -119,84 +122,54 @@ const Home = () => {
     localStorage.setItem('selectedQuests', JSON.stringify(isSelected));
   }, [isSelected]);
   return (
-    <div className="relative flex h-screen flex-col py-4 md:py-8">
-      <h1 className="text-center text-[4vmax] font-black text-white/50 md:text-[8vmax] dark:text-white">
-        2024 台灣 AI 生成大賽
-      </h1>
-      <div className="flex -translate-y-6 justify-center gap-4 text-lg text-white/50 md:text-6xl dark:text-white">
-        <p>{title.mainTitle}</p>
-        <p>{title.subTitle}</p>
-      </div>
-      <motion.section
-        layout
-        className="bg-background container relative z-10 flex flex-auto flex-col justify-between gap-4 rounded-2xl p-8"
-      >
-        {selectedQuests.length === 0 && (
-          <div className="flex flex-col items-end gap-2">
-            <p>目前題目數: {unselectedData?.length}</p>
-            <Button
-              type="button"
-              onClick={startPickup}
-              disabled={unselectedData?.length <= drawCount || isSpinning}
-            >
-              <Icons.pickup className="mr-2 size-6" />
-              隨機抽選
-            </Button>
-          </div>
-        )}
-        {isSpinning && <StringSpinner strings={unselectedData} />}
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="text-4xl">抽選結果</DialogTitle>
-              </DialogHeader>
-              <DialogDescription>獲選的是:</DialogDescription>
-              <ul>
-                {selectedQuests.map((item) => (
-                  <li className="text-2xl" key={item.id}>
-                    {item.title}
-                  </li>
-                ))}
-              </ul>
-            </DialogContent>
-          </Dialog>
-          {selectedQuests.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
-              <ul className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4">
-                <motion.li className="bg-primary rounded-xl px-6 py-4 text-center text-lg md:text-6xl">
-                  {selectedQuests[0].title}
-                </motion.li>
-              </ul>
-              <div className="flex w-full justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setSelectedQuests([])}
-                >
-                  清空
-                </Button>
-              </div>
+    <div
+      className={cn(
+        'relative bg-gradient-to-b from-black/90 via-black/10 to-black/90'
+      )}
+    >
+      <Image
+        src="/images/bg.jpg"
+        fill
+        layout="fill"
+        objectFit="cover"
+        alt="Background Image"
+        className="z-[-1]"
+      />
+      <main className="relative flex h-screen flex-col py-4 md:py-8">
+        <h1 className="text-center text-[4vmax] font-black text-white/50 md:text-[8vmax] dark:text-white">
+          2024 台灣 AI 生成大賽
+        </h1>
+        <div className="flex -translate-y-6 justify-center gap-4 text-lg text-white/50 md:text-6xl dark:text-white">
+          <p>{title.mainTitle}</p>
+          <p>{title.subTitle}</p>
+        </div>
+        <motion.section
+          layout
+          className="bg-background container relative z-10 flex flex-auto flex-col justify-between gap-4 rounded-2xl p-8"
+        >
+          {selectedQuests.length === 0 && (
+            <div className="flex flex-col items-end gap-2">
+              <p>目前題目數: {unselectedData?.length}</p>
+              <Button
+                type="button"
+                onClick={startPickup}
+                disabled={unselectedData?.length <= drawCount || isSpinning}
+              >
+                <Icons.pickup className="mr-2 size-6" />
+                隨機抽選
+              </Button>
             </div>
           )}
-          {showConfetti && <Confetti />}
-        </div>
-        {isSelected.length > 0 && (
-          <div className="flex justify-end">
-            <Dialog>
-              <DialogTrigger>
-                <div className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                  察看歷史項目
-                </div>
-              </DialogTrigger>
+          {isSpinning && <StringSpinner strings={unselectedData} />}
+          <div className="mx-auto flex w-full flex-col gap-4">
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className="text-4xl">已選擇的項目</DialogTitle>
+                  <DialogTitle className="text-4xl">抽選結果</DialogTitle>
                 </DialogHeader>
-                <DialogDescription>目前已抽選過的項目:</DialogDescription>
-                <ul className="space-y-2">
-                  {isSelected.map((item) => (
+                <DialogDescription>獲選的是:</DialogDescription>
+                <ul>
+                  {selectedQuests.map((item) => (
                     <li className="text-2xl" key={item.id}>
                       {item.title}
                     </li>
@@ -204,10 +177,55 @@ const Home = () => {
                 </ul>
               </DialogContent>
             </Dialog>
+            {selectedQuests.length > 0 && (
+              <div>
+                <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
+                <ul className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4">
+                  <motion.li className="bg-primary rounded-xl px-6 py-4 text-center text-lg md:text-6xl">
+                    {selectedQuests[0].title}
+                  </motion.li>
+                </ul>
+                <div className="flex w-full justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSelectedQuests([])}
+                  >
+                    清空
+                  </Button>
+                </div>
+              </div>
+            )}
+            {showConfetti && <Confetti />}
           </div>
-        )}
-      </motion.section>
-      <Setup />
+          {isSelected.length > 0 && (
+            <div className="flex justify-end">
+              <Dialog>
+                <DialogTrigger>
+                  <div className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                    察看歷史項目
+                  </div>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="text-4xl">已選擇的項目</DialogTitle>
+                  </DialogHeader>
+                  <DialogDescription>目前已抽選過的項目:</DialogDescription>
+                  <ul className="space-y-2">
+                    {isSelected.map((item) => (
+                      <li className="text-2xl" key={item.id}>
+                        {item.title}
+                      </li>
+                    ))}
+                  </ul>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+        </motion.section>
+        <Setup />
+        <Footer />
+      </main>
     </div>
   );
 };

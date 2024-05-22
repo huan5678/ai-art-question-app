@@ -1,7 +1,7 @@
 'use server';
 
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 import { env } from '@/env.mjs';
@@ -35,6 +35,14 @@ export async function registerUser(
     message: 'User registered',
     result: { user },
   };
+}
+
+export async function checkUserRole(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  return user.role;
 }
 
 export async function loginUser(email: string, password: string) {

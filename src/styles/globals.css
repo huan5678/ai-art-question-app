@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -25,6 +24,15 @@
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
     --radius: 0.5rem;
+
+    --n1: #141416;
+    --n2: #23262f;
+    --n3: #353945;
+    --n4: #777e90;
+    --n5: #b1b5c3;
+    --n6: #e6e8ec;
+    --n7: #f4f5f6;
+    --n8: #fcfcfd;
   }
 
   .dark {
@@ -49,7 +57,6 @@
     --ring: 0 0% 83.1%;
   }
 }
-
 
 @layer base {
   * {

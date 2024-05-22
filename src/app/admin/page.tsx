@@ -127,46 +127,44 @@ const Page = () => {
   });
 
   return (
-    <section className="container max-w-2xl space-y-4 pt-12 md:max-w-6xl">
-      <div className="bg-background rounded-lg p-8">
-        <Accordion type="single" collapsible>
-          <AccordionItem value="item-1">
-            <AccordionTrigger>
-              <span className="md:text-lg">題目設定</span>
-            </AccordionTrigger>
-            {questsStatus === 'success' && (
-              <AccordionContent className="px-2">
-                <QuestInput
-                  quests={quests}
-                  categories={categories}
-                  onCreateQuest={handleCreateQuest.mutate}
-                  isCreatePending={handleCreateQuest.isPending}
-                  isUpdatePending={handleUpdateQuest.isPending}
-                  isDeletePending={handleDeleteQuest.isPending}
-                />
-              </AccordionContent>
-            )}
-          </AccordionItem>
-          <AccordionItem value="item-2">
-            <AccordionTrigger>
-              <span className="md:text-lg">題組設定</span>
-            </AccordionTrigger>
-            {categoriesStatus === 'success' && (
-              <AccordionContent className="px-2">
-                <CategoryInput
-                  categories={categories}
-                  onCreateCategory={handleCreateCategory.mutate}
-                  onUpdateCategory={handleUpdateCategory.mutate}
-                  onDeleteCategory={handleDeleteCategory.mutate}
-                  isCreatePending={handleCreateCategory.isPending}
-                  isUpdatePending={handleUpdateCategory.isPending}
-                  isDeletePending={handleDeleteCategory.isPending}
-                />
-              </AccordionContent>
-            )}
-          </AccordionItem>
-        </Accordion>
-      </div>
+    <section className="bg-background max-h-screen overflow-y-auto rounded-lg p-8">
+      <Accordion type="single" collapsible>
+        <AccordionItem value="item-1">
+          <AccordionTrigger>
+            <span className="md:text-lg">題目設定</span>
+          </AccordionTrigger>
+          {questsStatus === 'success' && (
+            <AccordionContent className="px-2">
+              <QuestInput
+                quests={quests}
+                categories={categories}
+                onCreateQuest={handleCreateQuest.mutate}
+                isCreatePending={handleCreateQuest.isPending}
+                isUpdatePending={handleUpdateQuest.isPending}
+                isDeletePending={handleDeleteQuest.isPending}
+              />
+            </AccordionContent>
+          )}
+        </AccordionItem>
+        <AccordionItem value="item-2">
+          <AccordionTrigger>
+            <span className="md:text-lg">題組設定</span>
+          </AccordionTrigger>
+          {categoriesStatus === 'success' && (
+            <AccordionContent className="px-2">
+              <CategoryInput
+                categories={categories}
+                onCreateCategory={handleCreateCategory.mutate}
+                onUpdateCategory={handleUpdateCategory.mutate}
+                onDeleteCategory={handleDeleteCategory.mutate}
+                isCreatePending={handleCreateCategory.isPending}
+                isUpdatePending={handleUpdateCategory.isPending}
+                isDeletePending={handleDeleteCategory.isPending}
+              />
+            </AccordionContent>
+          )}
+        </AccordionItem>
+      </Accordion>
     </section>
   );
 };

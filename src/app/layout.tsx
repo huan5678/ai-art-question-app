@@ -2,9 +2,7 @@ import '@/styles/globals.css';
 
 import type { PropsWithChildren } from 'react';
 import type { Metadata } from 'next';
-import Image from 'next/image';
 
-import { Footer } from '@/components/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/lib/constant';
 import { fonts } from '@/lib/fonts';
@@ -50,28 +48,15 @@ export const metadata: Metadata = {
 const RootLayout = ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn('font-sans', fonts)}>
+      <body
+        className={cn('bg-[var(--n7)] font-sans dark:bg-[var(--n2)]', fonts)}
+      >
         <ReactQueryClientProvider>
-          <div
-            className={cn(
-              'relative bg-gradient-to-b from-black/90 via-black/10 to-black/90'
-            )}
-          >
-            <Image
-              src="/images/bg.jpg"
-              fill
-              layout="fill"
-              objectFit="cover"
-              alt="Background Image"
-              className="z-[-1]"
-            />
-            <ThemeProvider attribute="class" defaultTheme="light">
-              <ClientProvider />
-              {children}
-              <Toaster />
-              <Footer />
-            </ThemeProvider>
-          </div>
+          <ThemeProvider attribute="class" defaultTheme="light">
+            <ClientProvider />
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </ReactQueryClientProvider>
       </body>
     </html>

@@ -36,16 +36,16 @@ export async function middleware(req: NextRequest) {
   }
 
   const session = await verifyToken(sessionToken);
-  console.log('Session:', session);
-
-  if (!session || session.role !== 'admin') {
-    console.log('Session invalid or not admin, redirecting to home');
-    return NextResponse.redirect(new URL('/', req.url));
+  if (!session) {
+    console.log('Session invalid, redirecting to login');
+    return NextResponse.redirect(new URL('/auth/login', req.url));
   }
+
+  req.headers.set('X-User-Id', session.id);
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin'], // 更新這裡來匹配需要應用 middleware 的路由
+  matcher: ['/admin/:path*'], // 更新這裡來匹配需要應用 middleware 的路由
 };

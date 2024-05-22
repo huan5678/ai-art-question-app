@@ -1,11 +1,11 @@
-export const Footer = () => {
+const Footer = () => {
   return (
-    <div className="absolute bottom-0 w-full">
-      <footer className="container relative">
-        <p className="text-muted-foreground absolute bottom-2 w-full text-center text-sm">
-          © {new Date().getFullYear()} By 黃士桓
-        </p>
-      </footer>
-    </div>
+    <footer className="container relative">
+      <p className="text-center font-sans text-sm text-[var(--n4)] md:text-lg">
+        ©2024 By 黃士桓
+      </p>
+    </footer>
   );
 };
+
+export default Footer;
