@@ -69,7 +69,11 @@ const QuestInput: FC<IQuestInputProps> = ({
 
   return (
     <Form {...form}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <motion.form
+        layout
+        className="space-y-4"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         {quests && quests.length > 0 && (
           <div>
             <h2 className="text-lg">已有題目 ({quests.length})</h2>
@@ -199,7 +203,7 @@ const QuestInput: FC<IQuestInputProps> = ({
         >
           新增題目到資料庫
         </Button>
-      </form>
+      </motion.form>
     </Form>
   );
 };
