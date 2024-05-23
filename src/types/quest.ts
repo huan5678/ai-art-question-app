@@ -13,6 +13,14 @@ export interface IQuestState {
   categoriesStatus: QueryStatus;
   setQuestsStatus: (status: QueryStatus) => void;
   setCategoriesStatus: (status: QueryStatus) => void;
+  getQuests: () => void;
+  getCategories: () => void;
+  createCategory: (name: string) => Promise<void>;
+  updateCategory: (id: string, name: string) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  createQuest: (quest: IQuestInputState, userId: string) => Promise<void>;
+  updateQuest: (quest: IQuestInputState & { id: string }) => Promise<void>;
+  deleteQuest: (id: string) => Promise<void>;
 }
 
 export interface IQuestInputState {
@@ -35,3 +43,9 @@ export interface IQuestInputProps {
   isUpdatePending: boolean;
   isDeletePending: boolean;
 }
+
+export type QuestType = {
+  title: string;
+  id: string;
+  categoryId: string;
+};

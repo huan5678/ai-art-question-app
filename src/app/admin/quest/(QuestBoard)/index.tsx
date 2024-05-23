@@ -1,130 +1,80 @@
 'use client';
 
-import {
-  type Dispatch,
-  type FormEvent,
-  type SetStateAction,
-  useEffect,
-  useState,
-} from 'react';
-import { Category, Quest } from '@prisma/client';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import type { Quest } from '@prisma/client';
 
-import { Icons } from '@/components/icons';
-import QuestInput from '@/components/input/questInput';
-import useMutationHandler from '@/hooks/useMutationHandler';
+import DropIndicator from '../(DropIndicator)';
+import { AddQuestCard, QuestCard } from '../(QuestCard)';
+
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import useQuestStore from '@/stores/questStore';
+import type { IQuestState, QuestType } from '@/types/quest';
 
 const QuestBoard = () => {
   const [
     quests,
     categories,
-    setQuests,
-    setCategories,
-    questsStatus,
+    getQuests,
+    createQuest,
+    updateQuest,
     categoriesStatus,
+    questsStatus,
   ] = useQuestStore((state) => [
     state.quests,
     state.categories,
-    state.setQuests,
-    state.setCategories,
-    state.questsStatus,
+    state.getQuests,
+    state.createQuest,
+    state.updateQuest,
     state.categoriesStatus,
+    state.questsStatus,
   ]);
 
-  const handleGetQuests = useMutationHandler<void, Quest[]>({
-    url: '/api/quest',
-    method: 'GET',
-    options: {
-      onSuccess: (data) => {
-        setQuests(data);
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  useEffect(() => {
+    getQuests();
+  }, [getQuests]);
 
-  const handleCreateCategory = useMutationHandler<string, Category[]>({
-    url: '/api/category',
-    method: 'POST',
-    options: {
-      onSuccess: (data) => {
-        setCategories(data);
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
-
-  const handleUpdateCategory = useMutationHandler<
-    { id: string; name: string },
-    Category
-  >({
-    url: '/api/category',
-    method: 'PATCH',
-    options: {
-      onSuccess: (data) => {
-        const currentCategories = categories;
-        setCategories(
-          currentCategories.map((c) => (c.id === data.id ? data : c))
-        );
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
-
-  const handleDeleteCategory = useMutationHandler<string, Category>({
-    url: '/api/category',
-    method: 'DELETE',
-    options: {
-      onSuccess: (data) => {
-        const currentCategories = categories;
-        setCategories(currentCategories.filter((c) => c.id !== data.id));
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  const filteredQuests = (categoryId: string) =>
+    quests.filter((q) => q.categoryId === categoryId);
 
   return (
     <div className="flex gap-3 p-12 overflow-auto size-full">
-      {categories.map((category) => (
-        <Column
-          key={category.id}
-          title={category.name}
-          categoryId={category.id}
-          headingColor="text-neutral-500"
-          quests={quests}
-          setQuests={setQuests}
-          getQuests={handleGetQuests}
-        />
-      ))}
+      {categoriesStatus === 'success' &&
+        questsStatus === 'success' &&
+        categories.map((category) => (
+          <Card key={category.id}>
+            <CardHeader
+            >
+              <div
+              className="flex items-center justify-between">
+              <span>{category.name}</span>
+              <span>{filteredQuests(category.id).length}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <Column
+                key={category.id}
+                categoryId={category.id}
+                quests={quests}
+                setQuests={updateQuest}
+              />
+              <AddQuestCard
+                categoryId={category.id}
+                createQuest={createQuest}
+              />
+            </CardContent>
+          </Card>
+        ))}
     </div>
   );
 };
 
 type ColumnProps = {
-  title: string;
-  headingColor: string;
   quests: Quest[];
   categoryId: string;
-  setQuests: Dispatch<SetStateAction<Quest[]>>;
-  getQuests: () => void;
+  setQuests: IQuestState['updateQuest'];
 };
 
-const Column = ({
-  title,
-  headingColor,
-  quests,
-  categoryId,
-  setQuests,
-  getQuests,
-}: ColumnProps) => {
+const Column = ({ quests, categoryId, setQuests }: ColumnProps) => {
   const [active, setActive] = useState(false);
 
   const handleDragStart = (e: DragEvent, quest: QuestType) => {
@@ -161,14 +111,7 @@ const Column = ({
         copy.splice(insertAtIndex, 0, questToTransfer);
       }
 
-      setQuests(copy);
-
-      // Update the quest category in the database
-      await fetch(`/api/quest`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...questToTransfer, categoryId }),
-      });
+      setQuests({ ...questToTransfer, categoryId });
     }
   };
 
@@ -237,12 +180,6 @@ const Column = ({
 
   return (
     <div className="w-56 shrink-0">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className={`font-medium ${headingColor}`}>{title}</h3>
-        <span className="text-sm rounded text-neutral-400">
-          {filteredQuests.length}
-        </span>
-      </div>
       <div
         onDrop={handleDragEnd}
         onDragOver={handleDragOver}
@@ -253,7 +190,7 @@ const Column = ({
       >
         {filteredQuests.map((q) => {
           return (
-            <Card
+            <QuestCard
               key={q.id}
               {...q}
               handleDragStart={(e, quest) =>
@@ -263,148 +200,9 @@ const Column = ({
           );
         })}
         <DropIndicator beforeId={null} categoryId={categoryId} />
-        <AddCard getQuests={getQuests} setQuests={setQuests} />
       </div>
     </div>
   );
-};
-
-type CardProps = QuestType & {
-  handleDragStart: (
-    e: DragEvent,
-    data: { title: string; id: string; categoryId: string }
-  ) => void;
-};
-
-const Card = ({ title, id, categoryId, handleDragStart }: CardProps) => {
-  return (
-    <>
-      <DropIndicator beforeId={id} categoryId={categoryId} />
-      <motion.div
-        layout
-        layoutId={id}
-        draggable="true"
-        onDragStart={(e: DragEvent) =>
-          handleDragStart(e, { title, id, categoryId })
-        }
-        className="p-3 border rounded cursor-grab border-neutral-700 bg-neutral-800 active:cursor-grabbing"
-      >
-        <p className="text-sm text-neutral-100">{title}</p>
-      </motion.div>
-    </>
-  );
-};
-
-type DropIndicatorProps = {
-  beforeId: string | null;
-  categoryId: string;
-};
-
-const DropIndicator = ({ beforeId, categoryId }: DropIndicatorProps) => {
-  return (
-    <div
-      data-before={beforeId || '-1'}
-      data-column={categoryId}
-      className="my-0.5 h-0.5 w-full bg-violet-400 opacity-0"
-    />
-  );
-};
-
-type AddCardProps = {
-  getQuests: () => void;
-  setQuests: (quests: Quest[]) => void;
-};
-
-const AddCard = ({ getQuests, setQuests }: AddCardProps) => {
-  const [adding, setAdding] = useState(false);
-
-  const [quests, categories, questsStatus] = useQuestStore((state) => [
-    state.quests,
-    state.categories,
-    state.questsStatus,
-  ]);
-
-  const handleCreateQuest = useMutationHandler<
-    {
-      data: { title: string; description: string; categoryId: string }[];
-      userId: string;
-    },
-    Quest[]
-  >({
-    url: '/api/quest',
-    method: 'POST',
-    options: {
-      onSuccess: (data) => {
-        setQuests(data);
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
-
-  const handleUpdateQuest = useMutationHandler<
-    { id: string; title: string; description: string; categoryId: string },
-    Quest
-  >({
-    url: '/api/quest',
-    method: 'PATCH',
-    options: {
-      onSuccess: (data) => {
-        const currentQuests = quests;
-        setQuests(currentQuests.map((q) => (q.id === data.id ? data : q)));
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
-
-  const handleDeleteQuest = useMutationHandler<string, Quest>({
-    url: '/api/quest',
-    method: 'DELETE',
-    options: {
-      onSuccess: (data) => {
-        const currentQuests = quests;
-        setQuests(currentQuests.filter((q) => q.id !== data.id));
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
-
-
-  return (
-    <>
-      {adding && questsStatus === 'success' && (
-            <QuestInput
-              quests={quests}
-              categories={categories}
-              onCreateQuest={handleCreateQuest.mutate}
-              isCreatePending={handleCreateQuest.isPending}
-              isUpdatePending={handleUpdateQuest.isPending}
-              isDeletePending={handleDeleteQuest.isPending}
-            />
-      ) : (
-        <motion.button
-          layout
-          onClick={() => setAdding(true)}
-          className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
-        >
-          <span>Add card</span>
-          <Icons.plus />
-        </motion.button>
-      )}
-    </>
-  );
-};
-
-type ColumnType = string; // Updated to string type
-type QuestType = {
-  title: string;
-  id: string;
-  categoryId: ColumnType;
 };
 
 export default QuestBoard;

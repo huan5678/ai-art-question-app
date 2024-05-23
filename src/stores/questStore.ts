@@ -1,7 +1,20 @@
 import type { Category, Quest } from '@prisma/client';
 import { create } from 'zustand';
 
+import {
+  createCategory,
+  deleteCategory,
+  getCategories,
+  updateCategory,
+} from '@/actions/category-actions';
+import {
+  createQuest,
+  deleteQuest,
+  getQuests,
+  updateQuest,
+} from '@/actions/quest-actions';
 import type { IQuestState, QueryStatus } from '@/types/quest';
+import type { TResponse } from '@/types/response';
 
 const questStore = (set: (args: Partial<IQuestState>) => void) => ({
   quests: [] as Quest[],
@@ -14,27 +27,40 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     set({ categoriesStatus: status }),
   categoriesStatus: 'pending' as QueryStatus,
 
+  questsList: [] as Quest[],
+  setQuestsList: (quests: Quest[]) => set({ questsList: quests }),
+
   getQuests: async () => {
     set({ questsStatus: 'pending' });
     try {
-      const response = await fetch('/api/quest');
-      const data = await response.json();
-      set({ quests: data, questsStatus: 'success' });
+      const response = await getQuests();
+      set({ quests: response.result.quests, questsStatus: 'success' });
     } catch (error) {
       console.error(error);
       set({ questsStatus: 'error' });
     }
   },
 
+  getCategories: async () => {
+    set({ categoriesStatus: 'pending' });
+    try {
+      const response = await getCategories();
+      set({
+        categories: response.result.categories,
+        categoriesStatus: 'success',
+      });
+    } catch (error) {
+      console.error(error);
+      set({ categoriesStatus: 'error' });
+    }
+  },
+
   createCategory: async (name: string) => {
     try {
-      const response = await fetch('/api/category', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      });
-      const data = await response.json();
-      set((state) => ({ categories: [...state.categories, ...data] }));
+      const response = (await createCategory(name)) as unknown as TResponse<{
+        categories: Category[];
+      }>;
+      set({ categories: response.result.categories });
     } catch (error) {
       console.error(error);
     }
@@ -42,15 +68,13 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
 
   updateCategory: async (id: string, name: string) => {
     try {
-      const response = await fetch('/api/category', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, name }),
-      });
-      const data = await response.json();
-      set((state) => ({
-        categories: state.categories.map((c) => (c.id === id ? data : c)),
-      }));
+      const response = (await updateCategory(
+        id,
+        name
+      )) as unknown as TResponse<{
+        categories: Category[];
+      }>;
+      set({ categories: response.result.categories });
     } catch (error) {
       console.error(error);
     }
@@ -58,32 +82,27 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
 
   deleteCategory: async (id: string) => {
     try {
-      const response = await fetch(`/api/category?id=${id}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
-      set((state) => ({
-        categories: state.categories.filter((c) => c.id !== id),
-      }));
+      const response = (await deleteCategory(id)) as unknown as TResponse<{
+        categories: Category[];
+      }>;
+      set({ categories: response.result.categories });
     } catch (error) {
       console.error(error);
     }
   },
 
   createQuest: async (
-    quests: { title: string; description: string; categoryId: string }[],
+    quest: { title: string; description?: string; categoryId?: string },
     userId: string
   ) => {
     try {
-      const response = await fetch('/api/quest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: quests, userId }),
-      });
-      const data = await response.json();
-      set((state) => ({
-        quests: [...state.quests, ...data],
-      }));
+      const response = (await createQuest({
+        ...quest,
+        userId,
+      })) as unknown as TResponse<{
+        quests: Quest[];
+      }>;
+      set({ quests: response.result.quests });
     } catch (error) {
       console.error(error);
     }
@@ -92,19 +111,20 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
   updateQuest: async (quest: {
     id: string;
     title: string;
-    description: string;
-    categoryId: string;
+    description?: string;
+    categoryId?: string;
   }) => {
     try {
-      const response = await fetch('/api/quest', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(quest),
+      const response = (await updateQuest(quest)) as unknown as TResponse<{
+        quest: Quest;
+      }>;
+      set({
+        quests: useQuestStore
+          .getState()
+          .quests.map((q) =>
+            q.id === response.result.quest.id ? response.result.quest : q
+          ),
       });
-      const data = await response.json();
-      set((state) => ({
-        quests: state.quests.map((q) => (q.id === quest.id ? data : q)),
-      }));
     } catch (error) {
       console.error(error);
     }
@@ -112,13 +132,10 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
 
   deleteQuest: async (id: string) => {
     try {
-      const response = await fetch(`/api/quest?id=${id}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
-      set((state) => ({
-        quests: state.quests.filter((q) => q.id !== id),
-      }));
+      const response = (await deleteQuest(id)) as unknown as TResponse<{
+        quests: Quest[];
+      }>;
+      set({ quests: response.result.quests });
     } catch (error) {
       console.error(error);
     }
