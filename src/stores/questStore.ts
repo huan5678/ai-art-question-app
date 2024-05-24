@@ -57,37 +57,52 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
 
   createCategory: async (name: string) => {
     try {
+      set({ categoriesStatus: 'pending' });
       const response = (await createCategory(name)) as unknown as TResponse<{
         categories: Category[];
       }>;
-      set({ categories: response.result.categories });
+      set({
+        categories: response.result.categories,
+        categoriesStatus: 'success',
+      });
     } catch (error) {
       console.error(error);
+      set({ categoriesStatus: 'error' });
     }
   },
 
   updateCategory: async (id: string, name: string) => {
     try {
+      set({ categoriesStatus: 'pending' });
       const response = (await updateCategory(
         id,
         name
       )) as unknown as TResponse<{
         categories: Category[];
       }>;
-      set({ categories: response.result.categories });
+      set({
+        categories: response.result.categories,
+        categoriesStatus: 'success',
+      });
     } catch (error) {
       console.error(error);
+      set({ categoriesStatus: 'error' });
     }
   },
 
   deleteCategory: async (id: string) => {
     try {
+      set({ categoriesStatus: 'pending' });
       const response = (await deleteCategory(id)) as unknown as TResponse<{
         categories: Category[];
       }>;
-      set({ categories: response.result.categories });
+      set({
+        categories: response.result.categories,
+        categoriesStatus: 'success',
+      });
     } catch (error) {
       console.error(error);
+      set({ categoriesStatus: 'error' });
     }
   },
 
@@ -96,15 +111,17 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     userId: string
   ) => {
     try {
+      set({ questsStatus: 'pending' });
       const response = (await createQuest({
         ...quest,
         userId,
       })) as unknown as TResponse<{
         quests: Quest[];
       }>;
-      set({ quests: response.result.quests });
+      set({ quests: response.result.quests, questsStatus: 'success' });
     } catch (error) {
       console.error(error);
+      set({ questsStatus: 'error' });
     }
   },
 
@@ -115,6 +132,7 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     categoryId?: string;
   }) => {
     try {
+      set({ questsStatus: 'pending' });
       const response = (await updateQuest(quest)) as unknown as TResponse<{
         quest: Quest;
       }>;
@@ -124,20 +142,24 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
           .quests.map((q) =>
             q.id === response.result.quest.id ? response.result.quest : q
           ),
+        questsStatus: 'success',
       });
     } catch (error) {
       console.error(error);
+      set({ questsStatus: 'error' });
     }
   },
 
   deleteQuest: async (id: string) => {
     try {
+      set({ questsStatus: 'pending' });
       const response = (await deleteQuest(id)) as unknown as TResponse<{
         quests: Quest[];
       }>;
-      set({ quests: response.result.quests });
+      set({ quests: response.result.quests, questsStatus: 'success' });
     } catch (error) {
       console.error(error);
+      set({ questsStatus: 'error' });
     }
   },
 });

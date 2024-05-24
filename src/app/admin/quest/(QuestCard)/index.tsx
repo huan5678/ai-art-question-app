@@ -12,6 +12,12 @@ import DropIndicator from '../(DropIndicator)';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
   Form,
   FormControl,
   FormField,
@@ -27,6 +33,7 @@ type QuestCardProps = QuestType & {
     e: DragEvent,
     data: { title: string; id: string; categoryId: string }
   ) => void;
+  description?: string;
 };
 
 const QuestCard = ({
@@ -34,20 +41,26 @@ const QuestCard = ({
   id,
   categoryId,
   handleDragStart,
+  description,
 }: QuestCardProps) => {
   return (
     <>
-      <DropIndicator beforeId={id} categoryId={categoryId} />
+      <DropIndicator beforeId={id} categoryId={categoryId as string} />
       <motion.div
         layout
         layoutId={id}
         draggable="true"
         onDragStart={(e: DragEvent) =>
-          handleDragStart(e, { title, id, categoryId })
+          handleDragStart(e, { title, id, categoryId: categoryId as string })
         }
-        className="p-3 border rounded cursor-grab border-neutral-700 bg-neutral-800 active:cursor-grabbing"
+        className="cursor-grab active:cursor-grabbing"
       >
-        <p className="text-sm text-neutral-100">{title}</p>
+        <Card className=" hover:bg-neutral-50 dark:hover:bg-neutral-700/25">
+          <CardHeader className="py-2">
+            <CardTitle className="text-base">{title}</CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
+          </CardHeader>
+        </Card>
       </motion.div>
     </>
   );
@@ -167,7 +180,7 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
         <motion.div layout>
           <Button
             type="button"
-            variant={'ghost'}
+            variant={'outline'}
             onClick={() => setAdding(true)}
             className="flex w-full items-center gap-1.5"
           >

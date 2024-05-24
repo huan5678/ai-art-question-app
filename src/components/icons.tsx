@@ -1,5 +1,8 @@
 import {
+  Columns3,
+  Component,
   Dock,
+  GripVertical,
   LayoutList,
   LogOut,
   type LucideProps,
@@ -15,6 +18,9 @@ export const Icons = {
   home: (props: LucideProps) => <Dock {...props} />,
   layoutList: (props: LucideProps) => <LayoutList {...props} />,
   plus: (props: LucideProps) => <Plus {...props} />,
+  component: (props: LucideProps) => <Component {...props} />,
+  column: (props: LucideProps) => <Columns3 {...props} />,
+  menu: (props: LucideProps) => <GripVertical {...props} />,
   github: (props: LucideProps) => (
     <svg viewBox="0 0 438.549 438.549" {...props}>
       <title>GitHub Icon</title>

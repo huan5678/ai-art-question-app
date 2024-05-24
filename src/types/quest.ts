@@ -25,7 +25,7 @@ export interface IQuestState {
 
 export interface IQuestInputState {
   title: string;
-  description: string;
+  description: string | null;
   categoryId: string;
 }
 
@@ -47,5 +47,5 @@ export interface IQuestInputProps {
 export type QuestType = {
   title: string;
   id: string;
-  categoryId: string;
+  categoryId: string | null;
 };
