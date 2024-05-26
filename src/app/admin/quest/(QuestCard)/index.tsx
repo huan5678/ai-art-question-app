@@ -7,8 +7,6 @@ import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { z } from 'zod';
 
-import DropIndicator from '../(DropIndicator)';
-
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,9 +29,9 @@ import type { QuestType } from '@/types/quest';
 type QuestCardProps = QuestType & {
   handleDragStart: (
     e: DragEvent,
-    data: { title: string; id: string; categoryId: string }
+    data: { title: string; id: string; categoryId: string | null }
   ) => void;
-  description?: string;
+  description?: string | null;
 };
 
 const QuestCard = ({
@@ -45,17 +43,17 @@ const QuestCard = ({
 }: QuestCardProps) => {
   return (
     <>
-      <DropIndicator beforeId={id} categoryId={categoryId as string} />
       <motion.div
         layout
         layoutId={id}
         draggable="true"
         onDragStart={(e: DragEvent) =>
-          handleDragStart(e, { title, id, categoryId: categoryId as string })
+          handleDragStart(e, { title, id, categoryId: categoryId })
         }
+        dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
         className="cursor-grab active:cursor-grabbing"
       >
-        <Card className=" hover:bg-neutral-50 dark:hover:bg-neutral-700/25">
+        <Card className="shadow-[0px_6px_0px_rgb(200,_200,_200)] transition-all hover:translate-y-1.5 hover:bg-[var(--n8)] hover:shadow-[0px_0px_0px_rgb(200,_200,_200)] dark:shadow-[0px_6px_0px_rgb(60,_60,_60)] dark:hover:bg-[var(--n1)] dark:hover:shadow-[0px_0px_0px_rgb(60,_60,_60)]">
           <CardHeader className="py-2">
             <CardTitle className="text-base">{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
@@ -67,9 +65,9 @@ const QuestCard = ({
 };
 
 type AddQuestCardProps = {
-  categoryId: string;
+  categoryId: string | null;
   createQuest: (
-    quests: { title: string; description: string; categoryId: string },
+    quests: { title: string; description: string; categoryId: string | null },
     userId: string
   ) => void;
 };
@@ -115,7 +113,7 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="space-y-2 overflow-hidden"
+            className="p-2 space-y-2 overflow-hidden"
             layout
             onSubmit={handleSubmit(onSubmit)}
           >
@@ -161,15 +159,11 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
               <Button
                 type="button"
                 onClick={() => setAdding(false)}
-                variant={'ghost'}
+                variant={'outline'}
               >
                 取消
               </Button>
-              <Button
-                type="submit"
-                variant={'secondary'}
-                disabled={isSubmitting}
-              >
+              <Button type="submit" variant={'default'} disabled={isSubmitting}>
                 <span>儲存題目</span>
                 <Icons.plus />
               </Button>
@@ -182,7 +176,7 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
             type="button"
             variant={'outline'}
             onClick={() => setAdding(true)}
-            className="flex w-full items-center gap-1.5"
+            className="flex w-full select-none items-center gap-1.5"
           >
             <span>新增題目</span>
             <Icons.plus />

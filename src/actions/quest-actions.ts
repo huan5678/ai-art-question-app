@@ -3,14 +3,12 @@
 import type { Quest } from '@prisma/client';
 
 import prisma from '@/lib/prisma';
+import { IQuestInputState } from '@/types/quest';
 import type { TResponse } from '@/types/response';
 
-export async function createQuest(input: {
-  title: string;
-  description?: string;
-  categoryId?: string;
-  userId: string;
-}) {
+export async function createQuest(
+  input: IQuestInputState & { userId: string }
+) {
   if (!input.title) {
     return Error('Quest title is required');
   }
@@ -68,12 +66,7 @@ export async function getQuestsByCategoryId(categoryId: string) {
   };
 }
 
-export async function updateQuest(input: {
-  id: string;
-  title: string;
-  description?: string;
-  categoryId?: string;
-}) {
+export async function updateQuest(input: IQuestInputState & { id: string }) {
   if (!input.id) {
     return Error('Quest ID is required');
   }

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { z } from 'zod';
 
-import QuestBoard from './(QuestBoard)';
+import Board from './(Board)';
 
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -46,36 +46,37 @@ const AddCategory = ({ createCategory }: AddCategoryProps) => {
   return (
     <>
       {adding ? (
-        <motion.form
-          initial={{ opacity: 0, width: 0 }}
-          animate={{ opacity: 1, width: 'auto' }}
-          exit={{ opacity: 0, width: 0 }}
-          transition={{
-            staggerChildren: 0.1,
-            duration: 0.3,
-            ease: 'easeInOut',
-          }}
-          className="flex items-end gap-2 space-y-4 origin-right"
-          layout
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <motion.div className="flex flex-col gap-2" layout>
-            <Label htmlFor="name">題庫名稱</Label>
-            <Input type="text" id="name" {...form.register('name')} />
-          </motion.div>
-          <motion.div layout className="flex gap-2">
-            <Button type="submit" variant={'default'} disabled={isSubmitting}>
-              新增
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setAdding(false)}
-              variant={'outline'}
-            >
-              取消
-            </Button>
-          </motion.div>
-        </motion.form>
+        <AnimatePresence>
+          <motion.form
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.3,
+              ease: 'easeInOut',
+            }}
+            className="flex items-end gap-2 space-y-4 origin-right"
+            layout
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <motion.div className="flex flex-col gap-2" layout>
+              <Label htmlFor="name">題庫名稱</Label>
+              <Input type="text" id="name" {...form.register('name')} />
+            </motion.div>
+            <motion.div layout className="flex gap-2">
+              <Button type="submit" variant={'default'} disabled={isSubmitting}>
+                新增
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setAdding(false)}
+                variant={'outline'}
+              >
+                取消
+              </Button>
+            </motion.div>
+          </motion.form>
+        </AnimatePresence>
       ) : (
         <motion.div layout>
           <Button
@@ -94,7 +95,24 @@ const AddCategory = ({ createCategory }: AddCategoryProps) => {
 };
 
 const Page = () => {
-  const [createCategory] = useQuestStore((state) => [state.createCategory]);
+  const [
+    createCategory,
+    questsStatus,
+    categoriesStatus,
+    getQuests,
+    getCategories,
+  ] = useQuestStore((state) => [
+    state.createCategory,
+    state.questsStatus,
+    state.categoriesStatus,
+    state.getQuests,
+    state.getCategories,
+  ]);
+
+  useEffect(() => {
+    getQuests();
+    getCategories();
+  }, [getQuests, getCategories]);
 
   return (
     <motion.section
@@ -109,7 +127,13 @@ const Page = () => {
           <AddCategory createCategory={createCategory} />
         </div>
       </div>
-      <QuestBoard />
+      {categoriesStatus === 'pending' || questsStatus === 'pending' ? (
+        <div className="grid p-12 place-content-center">
+          <Icons.load className="animate-spin size-24" />
+        </div>
+      ) : categoriesStatus === 'success' && questsStatus === 'success' ? (
+        <Board />
+      ) : null}
     </motion.section>
   );
 };

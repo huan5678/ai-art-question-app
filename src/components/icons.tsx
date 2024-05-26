@@ -4,6 +4,7 @@ import {
   Dock,
   GripVertical,
   LayoutList,
+  LoaderCircle,
   LogOut,
   type LucideProps,
   Moon,
@@ -21,6 +22,7 @@ export const Icons = {
   component: (props: LucideProps) => <Component {...props} />,
   column: (props: LucideProps) => <Columns3 {...props} />,
   menu: (props: LucideProps) => <GripVertical {...props} />,
+  load: (props: LucideProps) => <LoaderCircle {...props} />,
   github: (props: LucideProps) => (
     <svg viewBox="0 0 438.549 438.549" {...props}>
       <title>GitHub Icon</title>
@@ -35,9 +37,9 @@ export const Icons = {
       <title>Pickup Icon</title>
       <g fill="currentColor">
         <path
-          clip-rule="evenodd"
+          clipRule="evenodd"
           d="m31.0583 23.6637c.1421-.398.5191-.6637.9417-.6637h10c.3252 0 .6301.1581.8174.424.1874.2658.2337.6061.1243.9123l-5 14c-.1421.398-.5191.6637-.9417.6637h-10c-.3252 0-.6301-.1581-.8174-.424-.1873-.2658-.2337-.6061-.1243-.9123z"
-          fill-rule="evenodd"
+          fillRule="evenodd"
         />
         <path d="m17 20c.5523 0 1-.4477 1-1s-.4477-1-1-1-1 .4477-1 1 .4477 1 1 1z" />
         <path d="m18 25c0 .5523-.4477 1-1 1s-1-.4477-1-1 .4477-1 1-1 1 .4477 1 1z" />
@@ -45,9 +47,9 @@ export const Icons = {
         <path d="m18 37c0 .5523-.4477 1-1 1s-1-.4477-1-1 .4477-1 1-1 1 .4477 1 1z" />
         <path d="m17 44c.5523 0 1-.4477 1-1s-.4477-1-1-1-1 .4477-1 1 .4477 1 1 1z" />
         <path
-          clip-rule="evenodd"
+          clipRule="evenodd"
           d="m7 14c-1.65685 0-3 1.3431-3 3v8.2899c0 .4424.29071.8322.71475.9584 2.47913.7379 4.28525 3.0352 4.28525 5.7517s-1.80612 5.0138-4.28525 5.7517c-.42404.1262-.71475.516-.71475.9584v8.2899c0 1.6569 1.34314 3 3 3h50c1.6569 0 3-1.3431 3-3v-8.2899c0-.4424-.2907-.8322-.7148-.9584-2.4791-.7379-4.2852-3.0352-4.2852-5.7517s1.8061-5.0138 4.2852-5.7517c.4241-.1262.7148-.516.7148-.9584v-8.2899c0-1.6569-1.3431-3-3-3zm46 2h-46c-.55228 0-1 .4477-1 1v7.5818c2.9311 1.1866 5 4.0597 5 7.4182s-2.0689 6.2316-5 7.4182v6.5818c0 .5523.44772 1 1 1h46c.5523 0 1-.4477 1-1v-6.5818c-2.9311-1.1866-5-4.0597-5-7.4182s2.0689-6.2316 5-7.4182v-7.5818c0-.5523-.4477-1-1-1z"
-          fill-rule="evenodd"
+          fillRule="evenodd"
         />
       </g>
     </svg>

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useLocalStorage } from 'usehooks-ts';
 
-import Confetti from '@/components/Confetti';
+import CircularAnimation from '@/components/CircularAnimation';
 import Footer from '@/components/footer';
 import { Icons } from '@/components/icons';
 import Setup from '@/components/setup';
@@ -13,12 +13,15 @@ import StringSpinner from '@/components/StringSpinner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import useConfetti from '@/hooks/useConfetti';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
 import useConfigurationStore from '@/stores/setupStore';
@@ -31,26 +34,25 @@ const Home = () => {
       state.selectedQuests,
       state.setSelectedQuests,
     ]);
-  const [quests, questsList] = useQuestStore((state) => [
-    state.quests,
+  const [questsList, questsStatus] = useQuestStore((state) => [
     state.questsList,
+    state.questsStatus,
   ]);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-
+  const [isHydrated, setIsHydrated] = useState(false); // 新增hydration狀態
   const [localStorageSelectedQuests, setLocalStorageSelectedQuests] =
     useLocalStorage('selectedQuests', [] as Quest[]);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  const [isSelected, setIsSelected] = useState<Quest[]>(
-    localStorageSelectedQuests || []
-  );
+
   // 過濾出未選中的項目
   const unselectedData = useMemo(
     () =>
-      questsList?.filter((quest) => !isSelected.some((q) => q.id === quest.id)),
-    [questsList, isSelected]
+      questsList?.filter(
+        (quest) => !localStorageSelectedQuests.some((q) => q.id === quest.id)
+      ),
+    [questsList, localStorageSelectedQuests]
   );
-
+  const { confettiAction } = useConfetti();
   const animationFrameId = useRef<number | null>(null);
 
   const animate = () => {
@@ -66,25 +68,34 @@ const Home = () => {
         cancelAnimationFrame(animationFrameId.current);
       }
       setIsSpinning(false);
-      setShowConfetti(true);
-      const newSelectedQuests = [...selectedQuests];
-      for (const index of selectedIndexes) {
-        const selectedData = quests[index];
-        newSelectedQuests.push(selectedData);
-      }
-      setSelectedQuests(newSelectedQuests);
-      setLocalStorageSelectedQuests(newSelectedQuests);
+      confettiAction();
+      const newSelectedQuests = selectedIndexes.map(
+        (index) => unselectedData[index]
+      );
+      const historySelectedQuests = [
+        ...localStorageSelectedQuests,
+        ...newSelectedQuests,
+      ];
+      const updatedSelectedQuests = [...selectedQuests, ...newSelectedQuests];
+      setSelectedQuests(updatedSelectedQuests);
+      setLocalStorageSelectedQuests(historySelectedQuests);
       setOpenDialog(true);
     },
-    [quests, selectedQuests, setSelectedQuests, setLocalStorageSelectedQuests]
+    [
+      unselectedData,
+      localStorageSelectedQuests,
+      selectedQuests,
+      setSelectedQuests,
+      setLocalStorageSelectedQuests,
+      confettiAction,
+    ]
   );
 
   const startPickup = () => {
-    if (quests.length === 0) return;
-    setShowConfetti(false);
+    if (unselectedData.length === 0) return;
     setIsSpinning(true);
     animate();
-    // 預先選擇指定數量的隨機索引
+
     const selectedIndexes: number[] = [];
     while (
       selectedIndexes.length < drawCount &&
@@ -96,19 +107,11 @@ const Home = () => {
       }
     }
 
-    // 更新選中的項目狀態
-    const newSelected = [...isSelected];
-    for (const index of selectedIndexes) {
-      const selectedData = unselectedData[index];
-      newSelected.push(selectedData);
-    }
-    setIsSelected(newSelected);
-
-    // 在2秒後停止動畫,並一次性顯示所有選擇的結果
     setTimeout(() => {
       stopPickup(selectedIndexes);
     }, 2000);
   };
+
   useEffect(() => {
     // 當組件卸載時，清除動畫
     return () => {
@@ -119,8 +122,9 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('selectedQuests', JSON.stringify(isSelected));
-  }, [isSelected]);
+    questsStatus === 'success' && setIsHydrated(true);
+  }, [questsStatus]);
+
   return (
     <div
       className={cn(
@@ -135,57 +139,119 @@ const Home = () => {
         alt="Background Image"
         className="z-[-1]"
       />
-      <main className="relative flex h-screen flex-col py-4 md:py-8">
+      <main className="flex flex-col h-screen py-4 md:py-8">
         <h1 className="text-center text-[4vmax] font-black text-white/50 md:text-[8vmax] dark:text-white">
           2024 台灣 AI 生成大賽
         </h1>
-        <div className="flex -translate-y-6 justify-center gap-4 text-lg text-white/50 md:text-6xl dark:text-white">
+        <div className="flex justify-center gap-4 text-lg text-white/50 md:-translate-y-6 md:text-6xl dark:text-white">
           <p>{title.mainTitle}</p>
           <p>{title.subTitle}</p>
         </div>
-        <motion.section
-          layout
-          className="bg-background container relative z-10 flex flex-auto flex-col justify-between gap-4 rounded-2xl p-8"
-        >
-          {selectedQuests.length === 0 && (
-            <div className="flex flex-col items-end gap-2">
-              <p>目前題目數: {unselectedData?.length}</p>
-              <Button
-                type="button"
-                onClick={startPickup}
-                disabled={unselectedData?.length <= drawCount || isSpinning}
-              >
-                <Icons.pickup className="mr-2 size-6" />
-                隨機抽選
-              </Button>
-            </div>
-          )}
-          {isSpinning && <StringSpinner strings={unselectedData} />}
-          <div className="mx-auto flex w-full flex-col gap-4">
+        {!isHydrated ? (
+          <motion.div
+            layout
+            className="container relative flex items-center justify-center h-screen bg-background"
+          >
+            <Icons.load className="size-24 animate-spin" />
+          </motion.div>
+        ) : (
+          <motion.section
+            layout
+            className="container relative z-10 flex flex-col justify-between flex-auto gap-4 p-8 bg-background rounded-2xl"
+          >
+            <p className="ms-auto">目前題目數: {unselectedData?.length}</p>
+            {selectedQuests.length === 0 && !isSpinning && (
+              <div className="flex flex-col items-end gap-2">
+                <CircularAnimation
+                  title="隨機抽選"
+                  onClick={startPickup}
+                  disabled={unselectedData?.length <= drawCount}
+                >
+                  <Icons.pickup
+                    className={cn(
+                      'size-16 origin-center',
+                      unselectedData?.length <= drawCount
+                        ? 'opacity-25'
+                        : '-rotate-12'
+                    )}
+                  />
+                </CircularAnimation>
+              </div>
+            )}
+            {isSpinning && <StringSpinner strings={unselectedData} />}
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-              <DialogContent>
+              <DialogContent className="max-w-xl md:max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle className="text-4xl">抽選結果</DialogTitle>
+                  <DialogTitle className="text-2xl md:text-4xl">
+                    抽選結果
+                  </DialogTitle>
                 </DialogHeader>
-                <DialogDescription>獲選的是:</DialogDescription>
-                <ul>
+                <DialogDescription className="w-full text-base text-end">
+                  獲選的是
+                </DialogDescription>
+                <motion.ul
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="py-6"
+                >
                   {selectedQuests.map((item) => (
-                    <li className="text-2xl" key={item.id}>
+                    <motion.li
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="text-4xl text-center md:text-8xl"
+                      key={item.id}
+                    >
                       {item.title}
-                    </li>
+                    </motion.li>
                   ))}
-                </ul>
+                </motion.ul>
+                <DialogFooter className="sm:justify-start">
+                  <DialogClose asChild>
+                    <Button
+                      className="w-full"
+                      type="button"
+                      variant="secondary"
+                    >
+                      關閉
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
             {selectedQuests.length > 0 && (
               <div>
-                <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
-                <ul className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4">
-                  <motion.li className="bg-primary rounded-xl px-6 py-4 text-center text-lg md:text-6xl">
-                    {selectedQuests[0].title}
-                  </motion.li>
-                </ul>
-                <div className="flex w-full justify-end">
+                <h3 className="mb-2 text-2xl text-center">本次獲選的是</h3>
+                <motion.ul
+                  layout
+                  className="flex flex-col max-w-screen-lg gap-4 mx-auto mb-2"
+                >
+                  {selectedQuests.map((quest) => (
+                    <motion.li
+                      key={quest.id}
+                      className="px-6 py-4 space-y-2 border shadow rounded-xl md:space-y-4"
+                    >
+                      <motion.h3
+                        layout
+                        className="text-4xl text-center md:text-8xl"
+                      >
+                        {quest.title}
+                      </motion.h3>
+                      <motion.span
+                        layout
+                        className="block text-center text-base font-light text-[var(--n5)] md:text-2xl"
+                      >
+                        {quest.description}
+                      </motion.span>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+                <div className="flex justify-end w-full">
                   <Button
                     type="button"
                     variant="outline"
@@ -196,34 +262,44 @@ const Home = () => {
                 </div>
               </div>
             )}
-            {showConfetti && <Confetti />}
-          </div>
-          {isSelected.length > 0 && (
-            <div className="flex justify-end">
-              <Dialog>
-                <DialogTrigger>
-                  <div className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                    察看歷史項目
-                  </div>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="text-4xl">已選擇的項目</DialogTitle>
-                  </DialogHeader>
-                  <DialogDescription>目前已抽選過的項目:</DialogDescription>
-                  <ul className="space-y-2">
-                    {isSelected.map((item) => (
-                      <li className="text-2xl" key={item.id}>
-                        {item.title}
-                      </li>
-                    ))}
-                  </ul>
-                </DialogContent>
-              </Dialog>
+            <div className="relative flex justify-end gap-4">
+              {localStorageSelectedQuests.length > 0 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="outline">
+                      察看歷史項目
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="text-4xl">
+                        已選擇的項目
+                      </DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>目前已抽選過的項目:</DialogDescription>
+                    <ul className="space-y-2">
+                      {localStorageSelectedQuests.map((item) => (
+                        <li className="text-2xl" key={item.id}>
+                          {item.title}
+                        </li>
+                      ))}
+                    </ul>
+                    <DialogFooter className="pt-6 border-t">
+                      <Button
+                        type="button"
+                        variant={'destructive'}
+                        onClick={() => setLocalStorageSelectedQuests([])}
+                      >
+                        重置選擇
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+              <Setup />
             </div>
-          )}
-        </motion.section>
-        <Setup />
+          </motion.section>
+        )}
         <Footer />
       </main>
     </div>

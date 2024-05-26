@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { Category, Quest } from '@prisma/client';
+import { motion } from 'framer-motion';
 
+import { Icons } from '@/components/icons';
 import CategoryInput from '@/components/input/categoryInput';
 import QuestInput from '@/components/input/questInput';
 import {
@@ -30,9 +33,11 @@ const Page = () => {
     state.categoriesStatus,
   ]);
 
+  const [isHydrated, setIsHydrated] = useState(false);
+
   const handleCreateQuest = useMutationHandler<
     {
-      data: { title: string; description: string; categoryId: string }[];
+      data: { title: string; description: string; categoryId: string | null }[];
       userId: string;
     },
     Quest[]
@@ -126,45 +131,58 @@ const Page = () => {
     },
   });
 
+  useEffect(() => {
+    questsStatus === 'success' && setIsHydrated(true);
+  }, [questsStatus]);
+
   return (
-    <section className="bg-background max-h-screen overflow-y-auto rounded-lg p-8">
-      <Accordion type="single" collapsible>
-        <AccordionItem value="item-1">
-          <AccordionTrigger>
-            <span className="md:text-lg">題目設定</span>
-          </AccordionTrigger>
-          {questsStatus === 'success' && (
-            <AccordionContent className="px-2">
-              <QuestInput
-                quests={quests}
-                categories={categories}
-                onCreateQuest={handleCreateQuest.mutate}
-                isCreatePending={handleCreateQuest.isPending}
-                isUpdatePending={handleUpdateQuest.isPending}
-                isDeletePending={handleDeleteQuest.isPending}
-              />
-            </AccordionContent>
-          )}
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>
-            <span className="md:text-lg">題組設定</span>
-          </AccordionTrigger>
-          {categoriesStatus === 'success' && (
-            <AccordionContent className="px-2">
-              <CategoryInput
-                categories={categories}
-                onCreateCategory={handleCreateCategory.mutate}
-                onUpdateCategory={handleUpdateCategory.mutate}
-                onDeleteCategory={handleDeleteCategory.mutate}
-                isCreatePending={handleCreateCategory.isPending}
-                isUpdatePending={handleUpdateCategory.isPending}
-                isDeletePending={handleDeleteCategory.isPending}
-              />
-            </AccordionContent>
-          )}
-        </AccordionItem>
-      </Accordion>
+    <section className="max-h-screen p-8 overflow-y-auto rounded-lg bg-background">
+      {!isHydrated ? (
+        <motion.div
+          layout
+          className="container relative flex items-center justify-center h-screen bg-background"
+        >
+          <Icons.load className="size-24 animate-spin" />
+        </motion.div>
+      ) : (
+        <Accordion type="single" collapsible>
+          <AccordionItem value="item-1">
+            <AccordionTrigger>
+              <span className="md:text-lg">題目設定</span>
+            </AccordionTrigger>
+            {questsStatus === 'success' && (
+              <AccordionContent className="px-2">
+                <QuestInput
+                  quests={quests}
+                  categories={categories}
+                  onCreateQuest={handleCreateQuest.mutate}
+                  isCreatePending={handleCreateQuest.isPending}
+                  isUpdatePending={handleUpdateQuest.isPending}
+                  isDeletePending={handleDeleteQuest.isPending}
+                />
+              </AccordionContent>
+            )}
+          </AccordionItem>
+          <AccordionItem value="item-2">
+            <AccordionTrigger>
+              <span className="md:text-lg">題組設定</span>
+            </AccordionTrigger>
+            {categoriesStatus === 'success' && (
+              <AccordionContent className="px-2">
+                <CategoryInput
+                  categories={categories}
+                  onCreateCategory={handleCreateCategory.mutate}
+                  onUpdateCategory={handleUpdateCategory.mutate}
+                  onDeleteCategory={handleDeleteCategory.mutate}
+                  isCreatePending={handleCreateCategory.isPending}
+                  isUpdatePending={handleUpdateCategory.isPending}
+                  isDeletePending={handleDeleteCategory.isPending}
+                />
+              </AccordionContent>
+            )}
+          </AccordionItem>
+        </Accordion>
+      )}
     </section>
   );
 };

@@ -14,6 +14,7 @@ export interface IQuestState {
   setQuestsStatus: (status: QueryStatus) => void;
   setCategoriesStatus: (status: QueryStatus) => void;
   getQuests: () => void;
+  getQuestsByCategory: (categoryId: string) => Promise<void>;
   getCategories: () => void;
   createCategory: (name: string) => Promise<void>;
   updateCategory: (id: string, name: string) => Promise<void>;
@@ -25,8 +26,8 @@ export interface IQuestState {
 
 export interface IQuestInputState {
   title: string;
-  description: string | null;
-  categoryId: string;
+  description?: string;
+  categoryId: string | null;
 }
 
 export interface IQuestInputProps {

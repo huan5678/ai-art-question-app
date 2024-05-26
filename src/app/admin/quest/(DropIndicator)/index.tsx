@@ -1,6 +1,6 @@
 type DropIndicatorProps = {
   beforeId: string | null;
-  categoryId: string;
+  categoryId: string | null;
 };
 
 const DropIndicator = ({ beforeId, categoryId }: DropIndicatorProps) => {

@@ -11,9 +11,10 @@ import {
   createQuest,
   deleteQuest,
   getQuests,
+  getQuestsByCategoryId,
   updateQuest,
 } from '@/actions/quest-actions';
-import type { IQuestState, QueryStatus } from '@/types/quest';
+import type { IQuestInputState, IQuestState, QueryStatus } from '@/types/quest';
 import type { TResponse } from '@/types/response';
 
 const questStore = (set: (args: Partial<IQuestState>) => void) => ({
@@ -34,7 +35,30 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     set({ questsStatus: 'pending' });
     try {
       const response = await getQuests();
-      set({ quests: response.result.quests, questsStatus: 'success' });
+      if (response.result.quests) {
+        set({ quests: response.result.quests, questsStatus: 'success' });
+      } else {
+        set({ questsStatus: 'error' });
+      }
+    } catch (error) {
+      console.error(error);
+      set({ questsStatus: 'error' });
+    }
+  },
+
+  getQuestsByCategory: async (categoryId: string) => {
+    set({ questsStatus: 'pending' });
+    try {
+      const response = (await getQuestsByCategoryId(
+        categoryId
+      )) as unknown as TResponse<{
+        quests: Quest[];
+      }>;
+      if (response.result.quests) {
+        set({ questsList: response.result.quests, questsStatus: 'success' });
+      } else {
+        set({ questsStatus: 'error' });
+      }
     } catch (error) {
       console.error(error);
       set({ questsStatus: 'error' });
@@ -45,10 +69,14 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     set({ categoriesStatus: 'pending' });
     try {
       const response = await getCategories();
-      set({
-        categories: response.result.categories,
-        categoriesStatus: 'success',
-      });
+      if (response.result.categories) {
+        set({
+          categories: response.result.categories,
+          categoriesStatus: 'success',
+        });
+      } else {
+        set({ categoriesStatus: 'error' });
+      }
     } catch (error) {
       console.error(error);
       set({ categoriesStatus: 'error' });
@@ -106,10 +134,7 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     }
   },
 
-  createQuest: async (
-    quest: { title: string; description?: string; categoryId?: string },
-    userId: string
-  ) => {
+  createQuest: async (quest: IQuestInputState, userId: string) => {
     try {
       set({ questsStatus: 'pending' });
       const response = (await createQuest({
@@ -125,12 +150,7 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     }
   },
 
-  updateQuest: async (quest: {
-    id: string;
-    title: string;
-    description?: string;
-    categoryId?: string;
-  }) => {
+  updateQuest: async (quest: IQuestInputState & { id: string }) => {
     try {
       set({ questsStatus: 'pending' });
       const response = (await updateQuest(quest)) as unknown as TResponse<{
@@ -139,7 +159,7 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
       set({
         quests: useQuestStore
           .getState()
-          .quests.map((q) =>
+          .quests.map((q: Quest) =>
             q.id === response.result.quest.id ? response.result.quest : q
           ),
         questsStatus: 'success',
