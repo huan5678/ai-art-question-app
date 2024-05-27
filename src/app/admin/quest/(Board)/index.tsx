@@ -1,6 +1,12 @@
 'use client';
 
-import { type DragEventHandler, type ReactNode, useState } from 'react';
+import {
+  type DragEventHandler,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { Category, Quest } from '@prisma/client';
 
 import { AddQuestCard, QuestCard } from '../(QuestCard)';
@@ -21,8 +27,51 @@ const QuestBoard = () => {
     ]
   );
 
+  const [showScroll, setShowScroll] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        const { scrollTop } = scrollRef.current;
+        if (scrollTop > 0) {
+          setShowScroll(true);
+        } else {
+          setShowScroll(false);
+        }
+
+        // 清除之前的計時器
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+        }
+
+        // 設置新的計時器
+        scrollTimeoutRef.current = setTimeout(() => {
+          setShowScroll(false);
+        }, 2000);
+      }
+    };
+
+    const scrollContainer = scrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+
+      return () => {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, []);
   return (
-    <div className="flex size-full gap-3 overflow-y-auto overflow-x-scroll p-12">
+    <div
+      ref={scrollRef}
+      className={cn(
+        'flex max-h-screen max-w-screen-xl justify-stretch gap-3 overflow-auto p-12 transition-all duration-300 ease-in-out',
+        showScroll
+          ? '[scrollbar-color:initial]'
+          : '[scrollbar-color:transparent_transparent]'
+      )}
+    >
       <Column
         title="全部題目"
         categoryId={null}
@@ -114,7 +163,7 @@ const Column = ({
   return (
     <Card
       className={cn(
-        'bg-[var(--n7)] dark:bg-[var(--n1)]',
+        'relative h-full bg-[var(--n7)] dark:bg-[var(--n1)]',
         active
           ? 'bg-[var(--n6)] dark:bg-[var(--n3)]'
           : 'bg-[var(--n7)] dark:bg-[var(--n1)]'
@@ -124,7 +173,9 @@ const Column = ({
       onDragEnter={handleDragOver as unknown as DragEventHandler}
       onDragLeave={handleDragLeave}
     >
-      <CardHeader>
+      <CardHeader
+        className={cn('sticky top-0 z-10 bg-[var(--n7)] dark:bg-[var(--n1)]')}
+      >
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
             <span>{title}</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 
@@ -9,13 +9,12 @@ import QuestTable from './(QuestTable)';
 import { Icons } from '@/components/icons';
 import CategoryInput from '@/components/input/categoryInput';
 import QuestInput from '@/components/input/questInput';
+import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
 
 const Page = () => {
   const [
     createQuest,
-    updateQuest,
-    deleteQuest,
     createCategory,
     updateCategory,
     deleteCategory,
@@ -25,8 +24,6 @@ const Page = () => {
     categoriesStatus,
   ] = useQuestStore((state) => [
     state.createQuest,
-    state.updateQuest,
-    state.deleteQuest,
     state.createCategory,
     state.updateCategory,
     state.deleteCategory,
@@ -37,7 +34,10 @@ const Page = () => {
   ]);
 
   const [isHydrated, setIsHydrated] = useState(false);
+  const [showScroll, setShowScroll] = useState(false);
   const { data: session } = useSession();
+  const scrollRef = useRef<HTMLElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleCreateQuest = ({
     data,
@@ -49,24 +49,6 @@ const Page = () => {
     }[];
   }) => {
     createQuest(data, session?.user?.id as string);
-  };
-
-  const handleUpdateQuest = ({
-    id,
-    title,
-    description,
-    categoryId,
-  }: {
-    id: string;
-    title: string;
-    description: string;
-    categoryId: string;
-  }) => {
-    updateQuest({ id, title, description, categoryId });
-  };
-
-  const handleDeleteQuest = (id: string) => {
-    deleteQuest(id);
   };
 
   const handleCreateCategory = (name: string) => {
@@ -87,8 +69,48 @@ const Page = () => {
       setIsHydrated(true);
   }, [questsStatus, categoriesStatus]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        const { scrollTop } = scrollRef.current;
+        if (scrollTop > 0) {
+          setShowScroll(true);
+        } else {
+          setShowScroll(false);
+        }
+
+        // 清除之前的計時器
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+        }
+
+        // 設置新的計時器
+        scrollTimeoutRef.current = setTimeout(() => {
+          setShowScroll(false);
+        }, 2000);
+      }
+    };
+
+    const scrollContainer = scrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+
+      return () => {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, []);
+
   return (
-    <section className="bg-background max-h-screen overflow-y-auto rounded-lg p-8">
+    <section
+      ref={scrollRef}
+      className={cn(
+        'bg-background max-h-screen overflow-y-auto rounded-lg p-8 transition-all duration-300 ease-in-out',
+        showScroll
+          ? '[scrollbar-color:initial]'
+          : '[scrollbar-color:transparent_transparent]'
+      )}
+    >
       {!isHydrated ? (
         <motion.div
           layout

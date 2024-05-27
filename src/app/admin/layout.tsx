@@ -47,9 +47,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           className="flex max-h-screen overflow-hidden"
         >
           <Sidebar links={links} socials={[]} />
-          <Layout>
-            <div className="relative w-full">{children}</div>
-          </Layout>
+          <Layout>{children}</Layout>
         </motion.main>
       </AdminTemplate>
     </AuthProvider>

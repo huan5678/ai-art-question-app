@@ -51,7 +51,9 @@ export function QuestTable({ quests }: QuestTableProps) {
           <TableRow key={quest.id}>
             <TableCell className="font-medium">{quest.title}</TableCell>
             <TableCell>{quest.description}</TableCell>
-            <TableCell>{getCategoryName(quest.categoryId)}</TableCell>
+            <TableCell className="text-center">
+              {getCategoryName(quest.categoryId)}
+            </TableCell>
             <TableCell className="text-right">{quest.accessCount}</TableCell>
             <TableCell className="text-right">
               {new Date(quest.createdAt).toLocaleString()}
@@ -60,7 +62,7 @@ export function QuestTable({ quests }: QuestTableProps) {
               <EditMenu
                 title={quest.title}
                 content={quest}
-                onEdit={updateQuest}
+                onEdit={() => updateQuest}
                 onDelete={deleteQuest}
               />
             </TableCell>

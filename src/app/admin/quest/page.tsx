@@ -115,7 +115,7 @@ const Page = () => {
   }, [getQuests, getCategories]);
 
   return (
-    <section className="bg-background max-h-screen overflow-y-auto rounded-lg p-8">
+    <section className="bg-background max-h-screen overflow-hidden rounded-lg p-8">
       <div className="w-full border-b pb-2">
         <div className="relative flex items-center justify-end">
           <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-lg md:text-2xl">

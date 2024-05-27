@@ -87,11 +87,12 @@ const QuestInput: FC<IQuestInputProps> = ({
           <motion.ul layout className="space-y-4">
             {fields.map((item, index) => (
               <motion.li
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
                 key={item.id}
-                initial={{ y: -50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -50, opacity: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
                 className="grid gap-4 md:grid-cols-4"
               >
                 <FormField
