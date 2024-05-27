@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC, useState } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Category } from '@prisma/client';
@@ -41,9 +41,7 @@ interface CategoryInputProps {
   onCreateCategory: (categoryName: string) => void;
   onUpdateCategory: (category: Category) => void;
   onDeleteCategory: (id: string) => void;
-  isCreatePending: boolean;
-  isUpdatePending: boolean;
-  isDeletePending: boolean;
+  status: boolean;
 }
 
 const categoryInputSchema = z.object({
@@ -55,12 +53,10 @@ const CategoryInput: FC<CategoryInputProps> = ({
   onCreateCategory,
   onUpdateCategory,
   onDeleteCategory,
-  isCreatePending,
-  isUpdatePending,
-  isDeletePending,
+  status,
 }) => {
   const [editCategory, setEditCategory] = useState<Category | null>(null);
-
+  const [isPending, setIsPending] = useState(false);
   const form = useForm({
     defaultValues: {
       category: '',
@@ -82,7 +78,9 @@ const CategoryInput: FC<CategoryInputProps> = ({
     }
   };
 
-  const isPending = isCreatePending || isUpdatePending || isDeletePending;
+  useEffect(() => {
+    status && setIsPending(false);
+  }, [status]);
 
   return (
     <Form {...form}>
@@ -176,19 +174,13 @@ const CategoryInput: FC<CategoryInputProps> = ({
             </DropdownMenu>
           ))}
         </div>
-        <motion.ul
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-4 space-y-4"
-        >
+        <motion.ul layout className="mb-4 space-y-4">
           <motion.li
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-wrap gap-4 md:flex-nowrap"
+            transition={{ duration: 0.3 }}
+            className="flex flex-wrap items-end gap-4 md:flex-nowrap"
           >
             <FormField
               control={control}
@@ -208,11 +200,15 @@ const CategoryInput: FC<CategoryInputProps> = ({
                 </FormItem>
               )}
             />
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full md:w-auto"
+            >
+              新增題庫名稱到資料庫
+            </Button>
           </motion.li>
         </motion.ul>
-        <Button type="submit" disabled={isPending} className="w-full md:w-auto">
-          新增題庫名稱到資料庫
-        </Button>
       </form>
     </Form>
   );

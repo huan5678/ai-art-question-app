@@ -3,27 +3,33 @@
 import type { Quest } from '@prisma/client';
 
 import prisma from '@/lib/prisma';
-import { IQuestInputState } from '@/types/quest';
+import type { IQuestInputState, TQuestInput } from '@/types/quest';
 import type { TResponse } from '@/types/response';
 
-export async function createQuest(
-  input: IQuestInputState & { userId: string }
-) {
-  if (!input.title) {
-    return Error('Quest title is required');
+export async function createQuest(input: TQuestInput) {
+  try {
+    if (!input.title) {
+      throw new Error('Quest title is required');
+    }
+    if (!input.userId) {
+      throw new Error('User ID is required');
+    }
+    await prisma.quest.create({
+      data: input,
+    });
+    const quests = await prisma.quest.findMany();
+    return {
+      state: true,
+      message: 'Quest created',
+      result: { quests },
+    };
+  } catch (error) {
+    return {
+      state: false,
+      message: (error as unknown as Error).message,
+      result: null,
+    };
   }
-  if (!input.userId) {
-    return Error('User ID is required');
-  }
-  await prisma.quest.create({
-    data: input,
-  });
-  const quests = await prisma.quest.findMany();
-  return {
-    state: true,
-    message: 'Quest created',
-    result: { quests },
-  };
 }
 
 export async function getQuests() {

@@ -139,7 +139,7 @@ const Home = () => {
         alt="Background Image"
         className="z-[-1]"
       />
-      <main className="flex flex-col h-screen py-4 md:py-8">
+      <main className="flex h-screen flex-col py-4 md:py-8">
         <h1 className="text-center text-[4vmax] font-black text-white/50 md:text-[8vmax] dark:text-white">
           2024 台灣 AI 生成大賽
         </h1>
@@ -150,14 +150,14 @@ const Home = () => {
         {!isHydrated ? (
           <motion.div
             layout
-            className="container relative flex items-center justify-center h-screen bg-background"
+            className="bg-background container relative flex h-screen items-center justify-center"
           >
-            <Icons.load className="size-24 animate-spin" />
+            <Icons.load className="size-16 animate-spin md:size-20" />
           </motion.div>
         ) : (
           <motion.section
             layout
-            className="container relative z-10 flex flex-col justify-between flex-auto gap-4 p-8 bg-background rounded-2xl"
+            className="bg-background container relative z-10 flex flex-auto flex-col justify-between gap-4 rounded-2xl p-8"
           >
             <p className="ms-auto">目前題目數: {unselectedData?.length}</p>
             {selectedQuests.length === 0 && !isSpinning && (
@@ -186,7 +186,7 @@ const Home = () => {
                     抽選結果
                   </DialogTitle>
                 </DialogHeader>
-                <DialogDescription className="w-full text-base text-end">
+                <DialogDescription className="w-full text-end text-base">
                   獲選的是
                 </DialogDescription>
                 <motion.ul
@@ -204,7 +204,7 @@ const Home = () => {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.5 }}
-                      className="text-4xl text-center md:text-8xl"
+                      className="text-center text-4xl md:text-8xl"
                       key={item.id}
                     >
                       {item.title}
@@ -226,19 +226,19 @@ const Home = () => {
             </Dialog>
             {selectedQuests.length > 0 && (
               <div>
-                <h3 className="mb-2 text-2xl text-center">本次獲選的是</h3>
+                <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
                 <motion.ul
                   layout
-                  className="flex flex-col max-w-screen-lg gap-4 mx-auto mb-2"
+                  className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4"
                 >
                   {selectedQuests.map((quest) => (
                     <motion.li
                       key={quest.id}
-                      className="px-6 py-4 space-y-2 border shadow rounded-xl md:space-y-4"
+                      className="space-y-2 rounded-xl border px-6 py-4 shadow md:space-y-4"
                     >
                       <motion.h3
                         layout
-                        className="text-4xl text-center md:text-8xl"
+                        className="text-center text-4xl md:text-8xl"
                       >
                         {quest.title}
                       </motion.h3>
@@ -251,7 +251,7 @@ const Home = () => {
                     </motion.li>
                   ))}
                 </motion.ul>
-                <div className="flex justify-end w-full">
+                <div className="flex w-full justify-end">
                   <Button
                     type="button"
                     variant="outline"
@@ -284,7 +284,7 @@ const Home = () => {
                         </li>
                       ))}
                     </ul>
-                    <DialogFooter className="pt-6 border-t">
+                    <DialogFooter className="border-t pt-6">
                       <Button
                         type="button"
                         variant={'destructive'}

@@ -1,187 +1,127 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Category, Quest } from '@prisma/client';
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
+
+import QuestTable from './(QuestTable)';
 
 import { Icons } from '@/components/icons';
 import CategoryInput from '@/components/input/categoryInput';
 import QuestInput from '@/components/input/questInput';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import useMutationHandler from '@/hooks/useMutationHandler';
 import useQuestStore from '@/stores/questStore';
 
 const Page = () => {
   const [
+    createQuest,
+    updateQuest,
+    deleteQuest,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    questsStatus,
     quests,
     categories,
-    setQuests,
-    setCategories,
-    questsStatus,
     categoriesStatus,
   ] = useQuestStore((state) => [
+    state.createQuest,
+    state.updateQuest,
+    state.deleteQuest,
+    state.createCategory,
+    state.updateCategory,
+    state.deleteCategory,
+    state.questsStatus,
     state.quests,
     state.categories,
-    state.setQuests,
-    state.setCategories,
-    state.questsStatus,
     state.categoriesStatus,
   ]);
 
   const [isHydrated, setIsHydrated] = useState(false);
+  const { data: session } = useSession();
 
-  const handleCreateQuest = useMutationHandler<
-    {
-      data: { title: string; description: string; categoryId: string | null }[];
-      userId: string;
-    },
-    Quest[]
-  >({
-    url: '/api/quest',
-    method: 'POST',
-    options: {
-      onSuccess: (data) => {
-        setQuests(data);
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  const handleCreateQuest = ({
+    data,
+  }: {
+    data: {
+      title: string;
+      description: string | null;
+      categoryId: string | null;
+    }[];
+  }) => {
+    createQuest(data, session?.user?.id as string);
+  };
 
-  const handleUpdateQuest = useMutationHandler<
-    { id: string; title: string; description: string; categoryId: string },
-    Quest
-  >({
-    url: '/api/quest',
-    method: 'PATCH',
-    options: {
-      onSuccess: (data) => {
-        const currentQuests = quests;
-        setQuests(currentQuests.map((q) => (q.id === data.id ? data : q)));
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  const handleUpdateQuest = ({
+    id,
+    title,
+    description,
+    categoryId,
+  }: {
+    id: string;
+    title: string;
+    description: string;
+    categoryId: string;
+  }) => {
+    updateQuest({ id, title, description, categoryId });
+  };
 
-  const handleDeleteQuest = useMutationHandler<string, Quest>({
-    url: '/api/quest',
-    method: 'DELETE',
-    options: {
-      onSuccess: (data) => {
-        const currentQuests = quests;
-        setQuests(currentQuests.filter((q) => q.id !== data.id));
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  const handleDeleteQuest = (id: string) => {
+    deleteQuest(id);
+  };
 
-  const handleCreateCategory = useMutationHandler<string, Category[]>({
-    url: '/api/category',
-    method: 'POST',
-    options: {
-      onSuccess: (data) => {
-        setCategories(data);
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  const handleCreateCategory = (name: string) => {
+    createCategory(name);
+  };
 
-  const handleUpdateCategory = useMutationHandler<
-    { id: string; name: string },
-    Category
-  >({
-    url: '/api/category',
-    method: 'PATCH',
-    options: {
-      onSuccess: (data) => {
-        const currentCategories = categories;
-        setCategories(
-          currentCategories.map((c) => (c.id === data.id ? data : c))
-        );
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  const handleUpdateCategory = ({ id, name }: { id: string; name: string }) => {
+    updateCategory(id, name);
+  };
 
-  const handleDeleteCategory = useMutationHandler<string, Category>({
-    url: '/api/category',
-    method: 'DELETE',
-    options: {
-      onSuccess: (data) => {
-        const currentCategories = categories;
-        setCategories(currentCategories.filter((c) => c.id !== data.id));
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  });
+  const handleDeleteCategory = (id: string) => {
+    deleteCategory(id);
+  };
 
   useEffect(() => {
-    questsStatus === 'success' && setIsHydrated(true);
-  }, [questsStatus]);
+    questsStatus === 'success' &&
+      categoriesStatus === 'success' &&
+      setIsHydrated(true);
+  }, [questsStatus, categoriesStatus]);
 
   return (
-    <section className="max-h-screen p-8 overflow-y-auto rounded-lg bg-background">
+    <section className="bg-background max-h-screen overflow-y-auto rounded-lg p-8">
       {!isHydrated ? (
         <motion.div
           layout
-          className="container relative flex items-center justify-center h-screen bg-background"
+          className="bg-background container relative flex h-screen items-center justify-center"
         >
-          <Icons.load className="size-24 animate-spin" />
+          <Icons.load className="size-16 animate-spin md:size-20" />
         </motion.div>
       ) : (
-        <Accordion type="single" collapsible>
-          <AccordionItem value="item-1">
-            <AccordionTrigger>
-              <span className="md:text-lg">題目設定</span>
-            </AccordionTrigger>
-            {questsStatus === 'success' && (
-              <AccordionContent className="px-2">
-                <QuestInput
-                  quests={quests}
-                  categories={categories}
-                  onCreateQuest={handleCreateQuest.mutate}
-                  isCreatePending={handleCreateQuest.isPending}
-                  isUpdatePending={handleUpdateQuest.isPending}
-                  isDeletePending={handleDeleteQuest.isPending}
-                />
-              </AccordionContent>
-            )}
-          </AccordionItem>
-          <AccordionItem value="item-2">
-            <AccordionTrigger>
-              <span className="md:text-lg">題組設定</span>
-            </AccordionTrigger>
-            {categoriesStatus === 'success' && (
-              <AccordionContent className="px-2">
-                <CategoryInput
-                  categories={categories}
-                  onCreateCategory={handleCreateCategory.mutate}
-                  onUpdateCategory={handleUpdateCategory.mutate}
-                  onDeleteCategory={handleDeleteCategory.mutate}
-                  isCreatePending={handleCreateCategory.isPending}
-                  isUpdatePending={handleUpdateCategory.isPending}
-                  isDeletePending={handleDeleteCategory.isPending}
-                />
-              </AccordionContent>
-            )}
-          </AccordionItem>
-        </Accordion>
+        <div className="space-y-2 md:space-y-4">
+          <div className="w-full border-b pb-2">
+            <h1 className="text-center text-lg md:text-2xl">管理頁面</h1>
+          </div>
+          <div className="border-b pb-4">
+            <h2 className="md:text-lg">題組設定</h2>
+            <CategoryInput
+              categories={categories}
+              onCreateCategory={handleCreateCategory}
+              onUpdateCategory={handleUpdateCategory}
+              onDeleteCategory={handleDeleteCategory}
+              status={isHydrated}
+            />
+          </div>
+          <div className="border-b pb-4">
+            <h2 className="md:text-lg">題目設定</h2>
+            <QuestInput
+              questCount={quests.length}
+              categories={categories}
+              onCreateQuest={() => handleCreateQuest}
+              status={isHydrated}
+            />
+          </div>
+          <QuestTable quests={quests} />
+        </div>
       )}
     </section>
   );

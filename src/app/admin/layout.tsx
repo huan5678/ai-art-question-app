@@ -1,5 +1,6 @@
 'use client';
 import { type ReactNode, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
@@ -38,12 +39,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
       <AdminTemplate>
-        <main className="flex max-h-screen overflow-hidden">
+        <motion.main
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex max-h-screen overflow-hidden"
+        >
           <Sidebar links={links} socials={[]} />
           <Layout>
             <div className="relative w-full">{children}</div>
           </Layout>
-        </main>
+        </motion.main>
       </AdminTemplate>
     </AuthProvider>
   );

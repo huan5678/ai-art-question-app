@@ -55,7 +55,7 @@ const AddCategory = ({ createCategory }: AddCategoryProps) => {
               duration: 0.3,
               ease: 'easeInOut',
             }}
-            className="flex items-end gap-2 space-y-4 origin-right"
+            className="flex origin-right items-end gap-2 space-y-4"
             layout
             onSubmit={handleSubmit(onSubmit)}
           >
@@ -115,26 +115,23 @@ const Page = () => {
   }, [getQuests, getCategories]);
 
   return (
-    <motion.section
-      layout
-      className="max-h-screen p-8 overflow-y-auto rounded-lg bg-background"
-    >
-      <div className="w-full pb-2 border-b">
+    <section className="bg-background max-h-screen overflow-y-auto rounded-lg p-8">
+      <div className="w-full border-b pb-2">
         <div className="relative flex items-center justify-end">
-          <h1 className="absolute text-lg text-center -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 md:text-2xl">
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-lg md:text-2xl">
             題目管理看板
           </h1>
           <AddCategory createCategory={createCategory} />
         </div>
       </div>
       {categoriesStatus === 'pending' || questsStatus === 'pending' ? (
-        <div className="grid p-12 place-content-center">
-          <Icons.load className="animate-spin size-24" />
-        </div>
+        <motion.div layout className="grid place-content-center p-12">
+          <Icons.load className="size-24 animate-spin" />
+        </motion.div>
       ) : categoriesStatus === 'success' && questsStatus === 'success' ? (
         <Board />
       ) : null}
-    </motion.section>
+    </section>
   );
 };
 

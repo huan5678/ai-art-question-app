@@ -134,16 +134,41 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     }
   },
 
-  createQuest: async (quest: IQuestInputState, userId: string) => {
+  createQuest: async (quest: IQuestInputState[], userId: string) => {
     try {
       set({ questsStatus: 'pending' });
-      const response = (await createQuest({
-        ...quest,
-        userId,
-      })) as unknown as TResponse<{
-        quests: Quest[];
-      }>;
-      set({ quests: response.result.quests, questsStatus: 'success' });
+      if (quest.length === 1) {
+        if (!quest[0].title) {
+          throw new Error('Quest title is required');
+        }
+
+        if (!userId) {
+          throw new Error('User ID is required');
+        }
+        const response = (await createQuest({
+          ...quest[0],
+          userId,
+        })) as unknown as TResponse<{
+          quests: Quest[];
+        }>;
+        set({ quests: response.result.quests, questsStatus: 'success' });
+      } else {
+        const quests = await Promise.all(
+          quest.map(async (q) => {
+            if (!q.title) {
+              throw new Error('Quest title is required');
+            }
+            return createQuest({
+              ...q,
+              userId,
+            });
+          })
+        );
+        set({
+          quests: quests?.at(-1)?.result?.quests,
+          questsStatus: 'success',
+        });
+      }
     } catch (error) {
       console.error(error);
       set({ questsStatus: 'error' });

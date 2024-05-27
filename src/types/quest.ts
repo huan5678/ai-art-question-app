@@ -19,19 +19,19 @@ export interface IQuestState {
   createCategory: (name: string) => Promise<void>;
   updateCategory: (id: string, name: string) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
-  createQuest: (quest: IQuestInputState, userId: string) => Promise<void>;
+  createQuest: (quest: IQuestInputState[], userId: string) => Promise<void>;
   updateQuest: (quest: IQuestInputState & { id: string }) => Promise<void>;
   deleteQuest: (id: string) => Promise<void>;
 }
 
 export interface IQuestInputState {
   title: string;
-  description?: string;
+  description?: string | null;
   categoryId: string | null;
 }
 
 export interface IQuestInputProps {
-  quests: Quest[];
+  questCount: number;
   categories: Category[];
   onCreateQuest: ({
     data,
@@ -40,9 +40,7 @@ export interface IQuestInputProps {
     data: IQuestInputState[];
     userId: string;
   }) => void;
-  isCreatePending: boolean;
-  isUpdatePending: boolean;
-  isDeletePending: boolean;
+  status: boolean;
 }
 
 export type QuestType = {
@@ -50,3 +48,12 @@ export type QuestType = {
   id: string;
   categoryId: string | null;
 };
+
+export type CategoryType = {
+  id: string;
+  name: string;
+};
+
+export type TQuestInput = IQuestInputState & { userId: string };
+
+export type TEditMenuOnEditProps = TQuestInput | CategoryType;

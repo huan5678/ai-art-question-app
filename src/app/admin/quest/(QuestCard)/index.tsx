@@ -5,7 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
+import type { Quest } from 'prisma/prisma-client';
 import { z } from 'zod';
+
+import CardEditMenu from '../../(EditMenu)';
 
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -24,7 +27,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import type { QuestType } from '@/types/quest';
+import useQuestStore from '@/stores/questStore';
+import type { IQuestInputState, QuestType } from '@/types/quest';
 
 type QuestCardProps = QuestType & {
   handleDragStart: (
@@ -41,6 +45,11 @@ const QuestCard = ({
   handleDragStart,
   description,
 }: QuestCardProps) => {
+  const [quests, updateQuest, deleteQuest] = useQuestStore((state) => [
+    state.quests,
+    state.updateQuest,
+    state.deleteQuest,
+  ]);
   return (
     <>
       <motion.div
@@ -55,7 +64,17 @@ const QuestCard = ({
       >
         <Card className="shadow-[0px_6px_0px_rgb(200,_200,_200)] transition-all hover:translate-y-1.5 hover:bg-[var(--n8)] hover:shadow-[0px_0px_0px_rgb(200,_200,_200)] dark:shadow-[0px_6px_0px_rgb(60,_60,_60)] dark:hover:bg-[var(--n1)] dark:hover:shadow-[0px_0px_0px_rgb(60,_60,_60)]">
           <CardHeader className="py-2">
-            <CardTitle className="text-base">{title}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">{title}</CardTitle>
+              <div className="-me-4">
+                <CardEditMenu
+                  title={title}
+                  onDelete={deleteQuest}
+                  onEdit={() => updateQuest}
+                  content={quests.find((q) => q.id === id) as Quest}
+                />
+              </div>
+            </div>
             {description && <CardDescription>{description}</CardDescription>}
           </CardHeader>
         </Card>
@@ -66,10 +85,7 @@ const QuestCard = ({
 
 type AddQuestCardProps = {
   categoryId: string | null;
-  createQuest: (
-    quests: { title: string; description: string; categoryId: string | null },
-    userId: string
-  ) => void;
+  createQuest: (quest: IQuestInputState[], userId: string) => void;
 };
 
 const questInputSchema = z.object({
@@ -99,7 +115,7 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
   } = form;
 
   const onSubmit = (data: { title: string; description: string }) => {
-    createQuest({ ...data, categoryId }, session?.user?.id as string);
+    createQuest([{ ...data, categoryId }], session?.user?.id as string);
     reset();
     setAdding(false);
   };
@@ -113,7 +129,7 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="p-2 space-y-2 overflow-hidden"
+            className="space-y-2 overflow-hidden p-2"
             layout
             onSubmit={handleSubmit(onSubmit)}
           >

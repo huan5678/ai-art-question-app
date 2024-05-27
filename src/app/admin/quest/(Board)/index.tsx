@@ -22,12 +22,19 @@ const QuestBoard = () => {
   );
 
   return (
-    <div className="flex gap-3 p-12 overflow-x-scroll overflow-y-auto size-full">
+    <div className="flex size-full gap-3 overflow-y-auto overflow-x-scroll p-12">
+      <Column
+        title="全部題目"
+        categoryId={null}
+        quests={quests}
+        updateQuest={updateQuest}
+        showMenu={false}
+      />
       <Column
         title="未指定題庫"
         categoryId={null}
-        quests={quests}
-        setQuests={updateQuest}
+        quests={quests.filter((q) => !q.categoryId)}
+        updateQuest={updateQuest}
         showMenu={false}
       >
         <AddQuestCard categoryId={null} createQuest={createQuest} />
@@ -37,8 +44,8 @@ const QuestBoard = () => {
           title={category.name}
           key={category.id}
           categoryId={category.id}
-          quests={quests}
-          setQuests={updateQuest}
+          quests={quests.filter((q) => q.categoryId === category.id)}
+          updateQuest={updateQuest}
           showMenu={true}
           category={category}
         >
@@ -52,7 +59,7 @@ const QuestBoard = () => {
 type ColumnProps = {
   quests: Quest[];
   categoryId: string | null;
-  setQuests: IQuestState['updateQuest'];
+  updateQuest: IQuestState['updateQuest'];
   children?: ReactNode;
   title: string;
   showMenu: boolean;
@@ -63,15 +70,17 @@ const Column = ({
   title,
   quests,
   categoryId,
-  setQuests,
+  updateQuest,
   showMenu = false,
   children,
   category,
 }: ColumnProps) => {
   const [active, setActive] = useState(false);
 
-  const filteredQuests = (categoryId: string | null) =>
-    quests?.filter((q) => q.categoryId === categoryId);
+  const [updateCategory, deleteCategory] = useQuestStore((state) => [
+    state.updateCategory,
+    state.deleteCategory,
+  ]);
 
   const handleDragStart = (e: DragEvent, quest: QuestType) => {
     (e.dataTransfer as DataTransfer).setData('questId', quest.id);
@@ -86,9 +95,9 @@ const Column = ({
     if (!questToUpdate) return;
 
     if (questToUpdate.categoryId !== categoryId) {
-      await setQuests({
+      await updateQuest({
         ...questToUpdate,
-        categoryId: categoryId ? categoryId : null,
+        categoryId,
       });
     }
   };
@@ -117,19 +126,25 @@ const Column = ({
     >
       <CardHeader>
         <div className="flex items-center justify-between">
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <span>{title}</span>
             <span className="relative inline-flex size-8 items-center justify-center rounded-full bg-[var(--n6)] dark:bg-[var(--n3)]">
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-mono text-[var(--n3)] dark:text-[var(--n6)]">
-                {filteredQuests(categoryId)?.length}
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-mono text-sm text-[var(--n3)] dark:text-[var(--n6)]">
+                {quests.length}
               </span>
             </span>
           </div>
-          {showMenu && <QuestColumnMenu category={category as Category} />}
+          {showMenu && (
+            <QuestColumnMenu
+              category={category as Category}
+              onEdit={(data) => updateCategory(data.id, data.name)}
+              onDelete={(categoryId: string) => deleteCategory(categoryId)}
+            />
+          )}
         </div>
       </CardHeader>
-      <CardContent className="w-56 p-4 space-y-2 shrink-0 md:space-y-4">
-        {filteredQuests(categoryId)?.map((q: Quest) => {
+      <CardContent className="w-56 shrink-0 space-y-2 p-4 md:space-y-4">
+        {quests.map((q: Quest) => {
           return (
             <QuestCard
               key={q.id}
