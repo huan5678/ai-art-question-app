@@ -35,8 +35,8 @@ import type { TEditMenuOnEditProps } from '@/types/quest';
 
 interface EditMenuProps<T, U> {
   title: string;
-  onDelete: (id: string) => void;
-  onEdit: (data: U) => void;
+  onDelete: (id: string) => Promise<void>;
+  onEdit: (data: U) => Promise<void>;
   children?: ReactNode;
   content: T;
 }

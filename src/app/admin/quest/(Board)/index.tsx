@@ -188,8 +188,8 @@ const Column = ({
           {showMenu && (
             <QuestColumnMenu
               category={category as Category}
-              onEdit={(data) => updateCategory(data.id, data.name)}
-              onDelete={(categoryId: string) => deleteCategory(categoryId)}
+              onEdit={updateCategory}
+              onDelete={deleteCategory}
             />
           )}
         </div>

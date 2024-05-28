@@ -4,12 +4,12 @@ import type { Category } from '@prisma/client';
 
 import EditMenu from '../../(EditMenu)';
 
-import type { CategoryType, TEditMenuOnEditProps } from '@/types/quest';
+import type { TEditMenuOnEditProps } from '@/types/quest';
 
 interface QuestColumnMenuProps {
   category: Category;
-  onDelete: (id: string) => void;
-  onEdit: (data: CategoryType) => void;
+  onDelete: (id: string) => Promise<void>;
+  onEdit: (data: TEditMenuOnEditProps) => Promise<void>;
 }
 
 const QuestColumnMenu = ({
@@ -21,7 +21,7 @@ const QuestColumnMenu = ({
     <EditMenu
       title={category.name}
       onDelete={onDelete}
-      onEdit={(data: TEditMenuOnEditProps) => onEdit(data as CategoryType)}
+      onEdit={onEdit}
       content={category}
     />
   );

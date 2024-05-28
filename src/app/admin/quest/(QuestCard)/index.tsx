@@ -70,7 +70,7 @@ const QuestCard = ({
                 <CardEditMenu
                   title={title}
                   onDelete={deleteQuest}
-                  onEdit={() => updateQuest}
+                  onEdit={updateQuest}
                   content={quests.find((q) => q.id === id) as Quest}
                 />
               </div>
@@ -85,14 +85,12 @@ const QuestCard = ({
 
 type AddQuestCardProps = {
   categoryId: string | null;
-  createQuest: (quest: IQuestInputState[], userId: string) => void;
+  createQuest: (quest: IQuestInputState[], userId: string) => Promise<void>;
 };
 
 const questInputSchema = z.object({
-  quest: z.object({
-    title: z.string().min(1, '請輸入題目名稱'),
-    description: z.string().optional(),
-  }),
+  title: z.string().min(1, { message: '請輸入題目名稱' }),
+  description: z.string().optional(),
 });
 
 const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
@@ -115,6 +113,7 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
   } = form;
 
   const onSubmit = (data: { title: string; description: string }) => {
+    console.log(data);
     createQuest([{ ...data, categoryId }], session?.user?.id as string);
     reset();
     setAdding(false);
@@ -129,8 +128,8 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="space-y-2 overflow-hidden p-2"
             layout
+            className="space-y-2 overflow-hidden p-2"
             onSubmit={handleSubmit(onSubmit)}
           >
             <FormField
