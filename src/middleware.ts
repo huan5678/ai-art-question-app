@@ -41,6 +41,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
+  if (session.role !== 'admin') {
+    console.log('User is not an admin, redirecting to home');
+    return NextResponse.redirect(new URL('/', req.url));
+  }
+
   req.headers.set('X-User-Id', session.id);
 
   return NextResponse.next();

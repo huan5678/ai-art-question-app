@@ -147,159 +147,161 @@ const Home = () => {
           <p>{title.mainTitle}</p>
           <p>{title.subTitle}</p>
         </div>
-        {!isHydrated ? (
-          <motion.div
-            layout
-            className="bg-background container relative flex h-screen items-center justify-center"
-          >
-            <Icons.load className="size-16 animate-spin md:size-20" />
-          </motion.div>
-        ) : (
-          <motion.section
-            layout
-            className="bg-background container relative z-10 flex flex-auto flex-col justify-between gap-4 rounded-2xl p-8"
-          >
-            <p className="ms-auto">目前題目數: {unselectedData?.length}</p>
-            {selectedQuests.length === 0 && !isSpinning && (
-              <div className="flex flex-col items-end gap-2">
-                <CircularAnimation
-                  title="隨機抽選"
-                  onClick={startPickup}
-                  disabled={unselectedData?.length <= drawCount}
-                >
-                  <Icons.pickup
-                    className={cn(
-                      'size-16 origin-center',
-                      unselectedData?.length <= drawCount
-                        ? 'opacity-25'
-                        : '-rotate-12'
-                    )}
-                  />
-                </CircularAnimation>
-              </div>
-            )}
-            {isSpinning && <StringSpinner strings={unselectedData} />}
-            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-              <DialogContent className="max-w-xl md:max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl md:text-4xl">
-                    抽選結果
-                  </DialogTitle>
-                </DialogHeader>
-                <DialogDescription className="w-full text-end text-base">
-                  獲選的是
-                </DialogDescription>
-                <motion.ul
-                  layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="py-6"
-                >
-                  {selectedQuests.map((item) => (
-                    <motion.li
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="text-center text-4xl md:text-8xl"
-                      key={item.id}
-                    >
-                      {item.title}
-                    </motion.li>
-                  ))}
-                </motion.ul>
-                <DialogFooter className="sm:justify-start">
-                  <DialogClose asChild>
-                    <Button
-                      className="w-full"
-                      type="button"
-                      variant="secondary"
-                    >
-                      關閉
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            {selectedQuests.length > 0 && (
-              <div>
-                <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
-                <motion.ul
-                  layout
-                  className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4"
-                >
-                  {selectedQuests.map((quest) => (
-                    <motion.li
-                      key={quest.id}
-                      className="space-y-2 rounded-xl border px-6 py-4 shadow md:space-y-4"
-                    >
-                      <motion.h3
-                        layout
-                        className="text-center text-4xl md:text-8xl"
-                      >
-                        {quest.title}
-                      </motion.h3>
-                      <motion.span
-                        layout
-                        className="block text-center text-base font-light text-[var(--n5)] md:text-2xl"
-                      >
-                        {quest.description}
-                      </motion.span>
-                    </motion.li>
-                  ))}
-                </motion.ul>
-                <div className="flex w-full justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setSelectedQuests([])}
+        <motion.section
+          layout
+          className="bg-background container relative z-10 flex flex-auto flex-col justify-between gap-4 rounded-2xl p-8"
+        >
+          {!isHydrated ? (
+            <motion.div
+              layout
+              className="bg-background container relative flex h-screen items-center justify-center"
+            >
+              <Icons.load className="size-16 animate-spin md:size-20" />
+            </motion.div>
+          ) : (
+            <>
+              <p className="ms-auto">目前題目數: {unselectedData?.length}</p>
+              {selectedQuests.length === 0 && !isSpinning && (
+                <div className="flex flex-col items-end gap-2">
+                  <CircularAnimation
+                    title="隨機抽選"
+                    onClick={startPickup}
+                    disabled={unselectedData?.length <= drawCount}
                   >
-                    清空
-                  </Button>
+                    <Icons.pickup
+                      className={cn(
+                        'size-16 origin-center',
+                        unselectedData?.length <= drawCount
+                          ? 'opacity-25'
+                          : '-rotate-12'
+                      )}
+                    />
+                  </CircularAnimation>
                 </div>
-              </div>
-            )}
-            <div className="relative flex justify-end gap-4">
-              {localStorageSelectedQuests.length > 0 && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button type="button" variant="outline">
-                      察看歷史項目
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle className="text-4xl">
-                        已選擇的項目
-                      </DialogTitle>
-                    </DialogHeader>
-                    <DialogDescription>目前已抽選過的項目:</DialogDescription>
-                    <ul className="space-y-2">
-                      {localStorageSelectedQuests.map((item) => (
-                        <li className="text-2xl" key={item.id}>
-                          {item.title}
-                        </li>
-                      ))}
-                    </ul>
-                    <DialogFooter className="border-t pt-6">
-                      <Button
-                        type="button"
-                        variant={'destructive'}
-                        onClick={() => setLocalStorageSelectedQuests([])}
-                      >
-                        重置選擇
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
               )}
-              <Setup />
-            </div>
-          </motion.section>
-        )}
+              {isSpinning && <StringSpinner strings={unselectedData} />}
+              <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+                <DialogContent className="max-w-xl md:max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl md:text-4xl">
+                      抽選結果
+                    </DialogTitle>
+                  </DialogHeader>
+                  <DialogDescription className="w-full text-end text-base">
+                    獲選的是
+                  </DialogDescription>
+                  <motion.ul
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="py-6"
+                  >
+                    {selectedQuests.map((item) => (
+                      <motion.li
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-center text-4xl md:text-8xl"
+                        key={item.id}
+                      >
+                        {item.title}
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                  <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                      <Button
+                        className="w-full"
+                        type="button"
+                        variant="secondary"
+                      >
+                        關閉
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              {selectedQuests.length > 0 && (
+                <div>
+                  <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
+                  <motion.ul
+                    layout
+                    className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4"
+                  >
+                    {selectedQuests.map((quest) => (
+                      <motion.li
+                        key={quest.id}
+                        className="space-y-2 rounded-xl border px-6 py-4 shadow md:space-y-4"
+                      >
+                        <motion.h3
+                          layout
+                          className="text-center text-4xl md:text-8xl"
+                        >
+                          {quest.title}
+                        </motion.h3>
+                        <motion.span
+                          layout
+                          className="block text-center text-base font-light text-[var(--n5)] md:text-2xl"
+                        >
+                          {quest.description}
+                        </motion.span>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                  <div className="flex w-full justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setSelectedQuests([])}
+                    >
+                      清空
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div className="relative flex justify-end gap-4">
+                {localStorageSelectedQuests.length > 0 && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline">
+                        察看歷史項目
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="text-4xl">
+                          已選擇的項目
+                        </DialogTitle>
+                      </DialogHeader>
+                      <DialogDescription>目前已抽選過的項目:</DialogDescription>
+                      <ul className="space-y-2">
+                        {localStorageSelectedQuests.map((item) => (
+                          <li className="text-2xl" key={item.id}>
+                            {item.title}
+                          </li>
+                        ))}
+                      </ul>
+                      <DialogFooter className="border-t pt-6">
+                        <Button
+                          type="button"
+                          variant={'destructive'}
+                          onClick={() => setLocalStorageSelectedQuests([])}
+                        >
+                          重置選擇
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+                <Setup />
+              </div>
+            </>
+          )}
+        </motion.section>
         <Footer />
       </main>
     </div>

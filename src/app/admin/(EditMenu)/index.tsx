@@ -61,6 +61,7 @@ const EditMenu = ({
   const { data: session } = useSession();
 
   const onSubmit = (data: { content: Quest | Category }) => {
+    console.log('EditMenu onSubmit data:', data);
     setStatus('pending');
     onEdit({
       ...data.content,

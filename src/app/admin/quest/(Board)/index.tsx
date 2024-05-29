@@ -9,13 +9,18 @@ import {
 } from 'react';
 import type { Category, Quest } from '@prisma/client';
 
+import EditMenu from '../../(EditMenu)';
 import { AddQuestCard, QuestCard } from '../(QuestCard)';
-import QuestColumnMenu from '../(QuestColumnMenu)';
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
-import type { IQuestState, QuestType } from '@/types/quest';
+import type {
+  CategoryType,
+  IQuestState,
+  QuestType,
+  TEditMenuOnEditProps,
+} from '@/types/quest';
 
 const QuestBoard = () => {
   const [quests, categories, createQuest, updateQuest] = useQuestStore(
@@ -160,6 +165,12 @@ const Column = ({
     setActive(false);
   };
 
+  const handleUpdateCategory = async (data: TEditMenuOnEditProps) => {
+    console.log('handleUpdateCategory data:', data);
+    const { id, name } = data as CategoryType;
+    await updateCategory(id, name);
+  };
+
   return (
     <Card
       className={cn(
@@ -186,10 +197,11 @@ const Column = ({
             </span>
           </div>
           {showMenu && (
-            <QuestColumnMenu
-              category={category as Category}
-              onEdit={updateCategory}
+            <EditMenu
+              title={(category as Category).name}
               onDelete={deleteCategory}
+              onEdit={handleUpdateCategory}
+              content={category as Category}
             />
           )}
         </div>
