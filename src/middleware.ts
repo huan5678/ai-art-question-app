@@ -18,7 +18,6 @@ interface SessionPayload {
 async function verifyToken(token: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, SECRET_KEY);
-    console.log('Decoded:', payload);
     return payload as unknown as SessionPayload;
   } catch (error) {
     console.error('JWT verification failed:', error);
@@ -28,21 +27,17 @@ async function verifyToken(token: string): Promise<SessionPayload | null> {
 
 export async function middleware(req: NextRequest) {
   const sessionToken = req.cookies.get('next-auth.session-token')?.value;
-  console.log('Session token:', sessionToken);
 
   if (!sessionToken) {
-    console.log('No session token found, redirecting to login');
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
   const session = await verifyToken(sessionToken);
   if (!session) {
-    console.log('Session invalid, redirecting to login');
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
   if (session.role !== 'admin') {
-    console.log('User is not an admin, redirecting to home');
     return NextResponse.redirect(new URL('/', req.url));
   }
 

@@ -20,7 +20,7 @@ export interface IQuestState {
   updateCategory: (id: string, name: string) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   createQuest: (data: IQuestInputState[], userId: string) => Promise<void>;
-  updateQuest: (data: IQuestInputState) => Promise<void>;
+  updateQuest: (data: IQuestUpdateState) => Promise<void>;
   deleteQuest: (id: string) => Promise<void>;
   updateQuestCategory: ({
     questId,
@@ -43,6 +43,10 @@ export interface IQuestInputProps {
   categories: Category[];
   onCreateQuest: (data: IQuestInputState[], userId: string) => void;
   status: boolean;
+}
+
+export interface IQuestUpdateState extends IQuestInputState {
+  id: string;
 }
 
 export type QuestType = {

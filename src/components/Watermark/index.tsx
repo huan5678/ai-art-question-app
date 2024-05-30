@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
@@ -36,7 +37,13 @@ const Watermark = ({
   </div>
 );
 
-const TranslateWrapper = ({ children, reverse }) => {
+const TranslateWrapper = ({
+  children,
+  reverse,
+}: {
+  children: ReactNode;
+  reverse: boolean;
+}) => {
   return (
     <motion.div
       initial={{ translateX: reverse ? '-100%' : '0%' }}

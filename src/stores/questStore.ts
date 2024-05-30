@@ -14,7 +14,12 @@ import {
   getQuestsByCategoryId,
   updateQuest,
 } from '@/actions/quest-actions';
-import type { IQuestInputState, IQuestState, QueryStatus } from '@/types/quest';
+import type {
+  IQuestInputState,
+  IQuestState,
+  IQuestUpdateState,
+  QueryStatus,
+} from '@/types/quest';
 import type { TResponse } from '@/types/response';
 
 const questStore = (
@@ -155,15 +160,18 @@ const questStore = (
     }
   },
 
-  updateQuest: async (data: Quest) => {
+  updateQuest: async (data: IQuestUpdateState) => {
     try {
       set({ questsStatus: 'pending' });
-      (await updateQuest(data)) as unknown as TResponse<{
-        quest: Quest;
-      }>;
+      const quest = get().quests.find((q) => q.id === data.id);
+      if (!quest) {
+        throw new Error('Quest not found');
+      }
+      const updatedQuest = { ...quest, ...data, title: data.title ?? '' };
+      await updateQuest(updatedQuest as Quest);
       set({
         quests: get().quests.map((q) =>
-          q.id === data.id ? { ...q, ...data } : q
+          q.id === data.id ? { ...q, ...data, title: data.title ?? '' } : q
         ),
         questsStatus: 'success',
       });

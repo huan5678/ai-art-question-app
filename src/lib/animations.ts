@@ -9,16 +9,16 @@ export const animatePageOut = (href: string, router: AppRouterInstance) => {
   ];
 
   banners
-    .filter((banner) => banner !== null)
-    .forEach((banner: HTMLElement, index) => {
-      (banner as HTMLElement).style.transition = `transform 1s ${index * 0.2}s`;
-      (banner as HTMLElement).style.transform = 'translateY(-100%)';
+    .filter((banner): banner is HTMLElement => banner !== null)
+    .forEach((banner, index) => {
+      banner.style.transition = `transform 1s ${index * 0.2}s`;
+      banner.style.transform = 'translateY(-100%)';
     });
 
   setTimeout(
     () => {
       router.push(href);
     },
-    1000 + banners.filter((banner) => banner !== null).length * 200
+    1000 + banners.length * 200
   );
 };
