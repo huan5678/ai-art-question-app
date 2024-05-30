@@ -2,10 +2,11 @@
 import { type FC, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 
 import { Icons } from '@/components/icons';
+import { animatePageOut } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import type { ILinksProps } from '@/types/types';
 
@@ -35,6 +36,13 @@ const ToggleButton = ({ visible }: { visible: boolean }) => {
 const Sidebar: FC<ILinksProps> = ({ links, socials = [] }) => {
   const [visible, setVisible] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleClick = (href: string) => {
+    if (pathname !== href) {
+      animatePageOut(href, router);
+    }
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -120,6 +128,7 @@ const Sidebar: FC<ILinksProps> = ({ links, socials = [] }) => {
                       pathname === item.url,
                   }
                 )}
+                onClick={() => handleClick(item.url)}
               >
                 <IconComponent
                   className={cn(
