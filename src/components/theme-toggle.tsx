@@ -5,7 +5,11 @@ import { useTheme } from 'next-themes';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 
-export const ThemeToggle = () => {
+type ThemeToggleProps = {
+  className?: string;
+};
+
+export const ThemeToggle = ({ className }: ThemeToggleProps) => {
   const { theme, setTheme } = useTheme();
 
   return (
@@ -13,6 +17,7 @@ export const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       aria-label="theme toggle"
+      className={className}
       onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
     >
       <Icons.sun className="dark:hidden" />

@@ -1,25 +1,28 @@
+'use client';
+
 import Link from 'next/link';
-import { getServerSession } from 'next-auth';
+import { usePathname } from 'next/navigation';
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options';
-import { SignInButton } from '@/components/navbar/sign-in-button';
-import { ThemeToggle } from '@/components/navbar/theme-toggle';
-import { UserDropdown } from '@/components/navbar/user-dropdown';
+export const Navbar = () => {
+  const pathname = usePathname();
 
-export const Navbar = async () => {
-  const session = await getServerSession(authOptions);
+  const showNavbar = pathname.includes('/admin');
 
   return (
-    <header className="w-full border-b">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="font-mono text-lg font-bold">
-          next-starter
+    showNavbar && (
+      <header className="relative w-full border-b py-4">
+        <Link
+          href="/"
+          className="absolute left-4 top-10 -translate-y-6 font-mono font-bold text-gray-300 decoration-transparent underline-offset-8 transition duration-300 ease-in-out hover:text-white hover:underline hover:decoration-white md:text-lg"
+        >
+          回抽選系統
         </Link>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          {session ? <UserDropdown session={session} /> : <SignInButton />}
+        <div className="container flex items-center justify-between">
+          <h2 className="mx-auto text-center text-lg font-bold text-white md:text-3xl">
+            後台管理系統
+          </h2>
         </div>
-      </div>
-    </header>
+      </header>
+    )
   );
 };

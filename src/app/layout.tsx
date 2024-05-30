@@ -1,15 +1,15 @@
 import '@/styles/globals.css';
 
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import type { Metadata } from 'next';
 
-import { Footer } from '@/components/footer';
-import { Navbar } from '@/components/navbar/navbar';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/lib/constant';
 import { fonts } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
+import ClientProvider from '@/provider/clientProvider';
+import { ReactQueryClientProvider } from '@/provider/ReactQueryClientProvider';
+import { ThemeProvider } from '@/provider/theme-provider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -21,9 +21,9 @@ export const metadata: Metadata = {
   keywords: siteConfig.keywords,
   robots: { index: true, follow: true },
   icons: {
-    icon: '/favicon/favicon.ico',
-    shortcut: '/favicon/favicon-16x16.png',
-    apple: '/favicon/apple-touch-icon.png',
+    icon: '/favicon/favicon.svg',
+    shortcut: '/favicon/favicon.svg',
+    apple: '/favicon/favicon.svg',
   },
   verification: {
     google: siteConfig.googleSiteVerificationId,
@@ -48,13 +48,16 @@ export const metadata: Metadata = {
 const RootLayout = ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn('min-h-screen font-sans', fonts)}>
-        <ThemeProvider attribute="class">
-          <Navbar />
-          {children}
-          <Footer />
-          <Toaster />
-        </ThemeProvider>
+      <body
+        className={cn('bg-[var(--n7)] font-sans dark:bg-[var(--n2)]', fonts)}
+      >
+        <ReactQueryClientProvider>
+          <ThemeProvider attribute="class" defaultTheme="light">
+            <ClientProvider />
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </ReactQueryClientProvider>
       </body>
     </html>
   );
