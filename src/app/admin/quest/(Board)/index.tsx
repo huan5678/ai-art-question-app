@@ -12,6 +12,12 @@ import type { Category, Quest } from '@prisma/client';
 import EditMenu from '../../(EditMenu)';
 import { AddQuestCard, QuestCard } from '../(QuestCard)';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
@@ -23,12 +29,12 @@ import type {
 } from '@/types/quest';
 
 const QuestBoard = () => {
-  const [quests, categories, createQuest, updateQuest] = useQuestStore(
+  const [quests, categories, createQuest, updateQuestCategory] = useQuestStore(
     (state) => [
       state.quests,
       state.categories,
       state.createQuest,
-      state.updateQuest,
+      state.updateQuestCategory,
     ]
   );
 
@@ -77,18 +83,48 @@ const QuestBoard = () => {
           : '[scrollbar-color:transparent_transparent]'
       )}
     >
-      <Column
-        title="全部題目"
-        categoryId={null}
-        quests={quests}
-        updateQuest={updateQuest}
-        showMenu={false}
-      />
+      <Card
+        className={cn('relative h-full bg-[var(--n7)] dark:bg-[var(--n1)]')}
+      >
+        <CardContent className="w-56 shrink-0">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="allQuests">
+              <AccordionTrigger className="w-full">
+                <div className="flex gap-2">
+                  <span>{'全部題目'}</span>
+                  <span className="relative inline-flex size-8 items-center justify-center rounded-full bg-[var(--n6)] dark:bg-[var(--n3)]">
+                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-mono text-sm text-[var(--n3)] dark:text-[var(--n6)]">
+                      {quests.length}
+                    </span>
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="w-full shrink-0 space-y-2 md:space-y-4">
+                {quests.map((q: Quest) => {
+                  return (
+                    <QuestCard
+                      key={q.id}
+                      {...q}
+                      handleDragStart={(e, quest) =>
+                        (e.dataTransfer as DataTransfer).setData(
+                          'questId',
+                          quest.id
+                        )
+                      }
+                      statute={true}
+                    />
+                  );
+                })}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
       <Column
         title="未指定題庫"
         categoryId={null}
         quests={quests.filter((q) => !q.categoryId)}
-        updateQuest={updateQuest}
+        updateQuestCategory={updateQuestCategory}
         showMenu={false}
       >
         <AddQuestCard categoryId={null} createQuest={createQuest} />
@@ -99,7 +135,7 @@ const QuestBoard = () => {
           key={category.id}
           categoryId={category.id}
           quests={quests.filter((q) => q.categoryId === category.id)}
-          updateQuest={updateQuest}
+          updateQuestCategory={updateQuestCategory}
           showMenu={true}
           category={category}
         >
@@ -113,7 +149,7 @@ const QuestBoard = () => {
 type ColumnProps = {
   quests: Quest[];
   categoryId: string | null;
-  updateQuest: IQuestState['updateQuest'];
+  updateQuestCategory: IQuestState['updateQuestCategory'];
   children?: ReactNode;
   title: string;
   showMenu: boolean;
@@ -124,7 +160,7 @@ const Column = ({
   title,
   quests,
   categoryId,
-  updateQuest,
+  updateQuestCategory,
   showMenu = false,
   children,
   category,
@@ -144,16 +180,10 @@ const Column = ({
     e.preventDefault();
     const questId = e.dataTransfer?.getData('questId');
     setActive(false);
-
-    const questToUpdate = quests.find((q) => q.id === questId);
-    if (!questToUpdate) return;
-
-    if (questToUpdate.categoryId !== categoryId) {
-      await updateQuest({
-        ...questToUpdate,
-        categoryId,
-      });
-    }
+    if (!questId) return;
+    const quest = quests.find((q) => q.id === questId);
+    if (quest?.categoryId === categoryId) return;
+    await updateQuestCategory({ questId, categoryId });
   };
 
   const handleDragOver = (e: DragEvent) => {

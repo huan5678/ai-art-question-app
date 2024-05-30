@@ -17,7 +17,10 @@ import {
 import type { IQuestInputState, IQuestState, QueryStatus } from '@/types/quest';
 import type { TResponse } from '@/types/response';
 
-const questStore = (set: (args: Partial<IQuestState>) => void) => ({
+const questStore = (
+  set: (args: Partial<IQuestState>) => void,
+  get: () => IQuestState
+) => ({
   quests: [] as Quest[],
   setQuests: (quests: Quest[]) => set({ quests }),
   questsStatus: 'pending' as QueryStatus,
@@ -134,59 +137,63 @@ const questStore = (set: (args: Partial<IQuestState>) => void) => ({
     }
   },
 
-  createQuest: async (quest: IQuestInputState[], userId: string) => {
+  createQuest: async (data: IQuestInputState[], userId: string) => {
     try {
       set({ questsStatus: 'pending' });
-      if (quest.length === 1) {
-        if (!quest[0].title) {
-          throw new Error('Quest title is required');
-        }
-
-        if (!userId) {
-          throw new Error('User ID is required');
-        }
-        const response = (await createQuest({
-          ...quest[0],
-          userId,
-        })) as unknown as TResponse<{
-          quests: Quest[];
-        }>;
-        set({ quests: response.result.quests, questsStatus: 'success' });
-      } else {
-        const quests = await Promise.all(
-          quest.map(async (q) => {
-            if (!q.title) {
-              throw new Error('Quest title is required');
-            }
-            return createQuest({
-              ...q,
-              userId,
-            });
-          })
-        );
-        set({
-          quests: quests?.at(-1)?.result?.quests,
-          questsStatus: 'success',
-        });
+      const resultData = data.map((d) => ({ ...d, userId }));
+      const response = await createQuest(resultData);
+      if (response.state === false) {
+        throw new Error(response.message);
       }
+      set({
+        quests: response.result?.quests,
+        questsStatus: 'success',
+      });
     } catch (error) {
       console.error(error);
       set({ questsStatus: 'error' });
     }
   },
 
-  updateQuest: async (quest: IQuestInputState & { id: string }) => {
+  updateQuest: async (data: Quest) => {
     try {
       set({ questsStatus: 'pending' });
-      const response = (await updateQuest(quest)) as unknown as TResponse<{
+      (await updateQuest(data)) as unknown as TResponse<{
         quest: Quest;
       }>;
       set({
-        quests: useQuestStore
-          .getState()
-          .quests.map((q: Quest) =>
-            q.id === response.result.quest.id ? response.result.quest : q
-          ),
+        quests: get().quests.map((q) =>
+          q.id === data.id ? { ...q, ...data } : q
+        ),
+        questsStatus: 'success',
+      });
+    } catch (error) {
+      console.error(error);
+      set({ questsStatus: 'error' });
+    }
+  },
+
+  updateQuestCategory: async ({
+    questId,
+    categoryId,
+  }: {
+    questId: string;
+    categoryId: string | null;
+  }) => {
+    try {
+      set({ questsStatus: 'pending' });
+      const quest = get().quests.find((q) => q.id === questId);
+      if (!quest) {
+        throw new Error('Quest not found');
+      }
+      quest.categoryId = categoryId;
+      (await updateQuest(quest)) as unknown as TResponse<{
+        quest: Quest;
+      }>;
+      set({
+        quests: get().quests.map((q) =>
+          q.id === quest.id ? { ...q, ...quest } : q
+        ),
         questsStatus: 'success',
       });
     } catch (error) {

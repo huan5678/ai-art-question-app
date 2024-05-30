@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { Category, Quest } from '@prisma/client';
 import { useSession } from 'next-auth/react';
@@ -33,11 +33,10 @@ import {
 import { Input } from '@/components/ui/input';
 import type { TEditMenuOnEditProps } from '@/types/quest';
 
-interface EditMenuProps<T, U> {
+interface EditMenuProps<T> {
   title: string;
   onDelete: (id: string) => Promise<void>;
-  onEdit: (data: U) => Promise<void>;
-  children?: ReactNode;
+  onEdit: (data: TEditMenuOnEditProps) => Promise<void>;
   content: T;
 }
 
@@ -46,7 +45,7 @@ const EditMenu = ({
   onDelete,
   onEdit,
   content,
-}: EditMenuProps<Quest | Category, TEditMenuOnEditProps>) => {
+}: EditMenuProps<Quest | Category>) => {
   const [status, setStatus] = useState<string>('idle');
   const [isOpenDropdown, setIsOpenDropdown] = useState<string>('');
 
@@ -61,7 +60,6 @@ const EditMenu = ({
   const { data: session } = useSession();
 
   const onSubmit = (data: { content: Quest | Category }) => {
-    console.log('EditMenu onSubmit data:', data);
     setStatus('pending');
     onEdit({
       ...data.content,
@@ -69,6 +67,7 @@ const EditMenu = ({
     });
     reset();
     setStatus('idle');
+    setIsOpenDropdown('');
   };
 
   return (
@@ -100,7 +99,7 @@ const EditMenu = ({
                 <DialogTitle>{title}</DialogTitle>
                 <DialogClose />
               </DialogHeader>
-              <DialogDescription>編輯{title}名稱</DialogDescription>
+              <DialogDescription>編輯 {title} 名稱</DialogDescription>
               <Form {...form}>
                 <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
                   {'title' in content && (
@@ -109,7 +108,7 @@ const EditMenu = ({
                       name="content.title"
                       render={({ field }) => (
                         <FormItem className="w-full md:w-auto md:flex-1">
-                          <FormLabel>名稱</FormLabel>
+                          <FormLabel htmlFor={'content.title'}>名稱</FormLabel>
                           <FormControl>
                             <Input
                               id={'content.title'}
@@ -131,7 +130,7 @@ const EditMenu = ({
                       name="content.name"
                       render={({ field }) => (
                         <FormItem className="w-full md:w-auto md:flex-1">
-                          <FormLabel>名稱</FormLabel>
+                          <FormLabel htmlFor={'content.name'}>名稱</FormLabel>
                           <FormControl>
                             <Input
                               id={'content.name'}
@@ -153,7 +152,9 @@ const EditMenu = ({
                       name="content.description"
                       render={({ field }) => (
                         <FormItem className="w-full md:w-auto md:flex-1">
-                          <FormLabel>描述</FormLabel>
+                          <FormLabel htmlFor={'content.description'}>
+                            描述
+                          </FormLabel>
                           <FormControl>
                             <Input
                               id={'content.description'}
@@ -170,16 +171,16 @@ const EditMenu = ({
                       )}
                     />
                   )}
+                  <DialogFooter>
+                    <Button type="submit">送出</Button>
+                    <DialogClose asChild>
+                      <Button type="button" variant="outline">
+                        取消
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
                 </form>
               </Form>
-              <DialogFooter>
-                <Button type="submit">送出</Button>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">
-                    取消
-                  </Button>
-                </DialogClose>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
           <DropdownMenuSeparator />

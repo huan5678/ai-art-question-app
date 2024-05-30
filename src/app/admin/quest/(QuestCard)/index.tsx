@@ -8,7 +8,7 @@ import { useSession } from 'next-auth/react';
 import type { Quest } from 'prisma/prisma-client';
 import { z } from 'zod';
 
-import CardEditMenu from '../../(EditMenu)';
+import EditMenu from '../../(EditMenu)';
 
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -27,8 +27,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
-import type { IQuestInputState, QuestType } from '@/types/quest';
+import type {
+  IQuestInputState,
+  QuestType,
+  TEditMenuOnEditProps,
+} from '@/types/quest';
 
 type QuestCardProps = QuestType & {
   handleDragStart: (
@@ -36,6 +41,7 @@ type QuestCardProps = QuestType & {
     data: { title: string; id: string; categoryId: string | null }
   ) => void;
   description?: string | null;
+  statute?: boolean;
 };
 
 const QuestCard = ({
@@ -44,33 +50,44 @@ const QuestCard = ({
   categoryId,
   handleDragStart,
   description,
+  statute,
 }: QuestCardProps) => {
   const [quests, updateQuest, deleteQuest] = useQuestStore((state) => [
     state.quests,
     state.updateQuest,
     state.deleteQuest,
   ]);
+
+  const handleUpdateQuest = async (data: TEditMenuOnEditProps) => {
+    await updateQuest(data as Quest);
+  };
   return (
     <>
       <motion.div
         layout
         layoutId={id}
-        draggable="true"
+        draggable={!statute}
         onDragStart={(e: DragEvent) =>
           handleDragStart(e, { title, id, categoryId: categoryId })
         }
         dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
-        className="cursor-grab active:cursor-grabbing"
+        className={cn(!statute && 'cursor-grab active:cursor-grabbing')}
       >
-        <Card className="shadow-[0px_6px_0px_rgb(200,_200,_200)] transition-all hover:translate-y-1.5 hover:bg-[var(--n8)] hover:shadow-[0px_0px_0px_rgb(200,_200,_200)] dark:shadow-[0px_6px_0px_rgb(60,_60,_60)] dark:hover:bg-[var(--n1)] dark:hover:shadow-[0px_0px_0px_rgb(60,_60,_60)]">
+        <Card
+          className={cn(
+            'shadow-[0px_6px_0px_rgb(200,_200,_200)] transition-all dark:shadow-[0px_6px_0px_rgb(60,_60,_60)] dark:hover:bg-[var(--n1)] ',
+            !statute &&
+              'hover:translate-y-1.5 hover:bg-[var(--n8)] hover:shadow-[0px_0px_0px_rgb(200,_200,_200)] dark:hover:shadow-[0px_0px_0px_rgb(60,_60,_60)]'
+          )}
+        >
           <CardHeader className="py-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">{title}</CardTitle>
               <div className="-me-4">
-                <CardEditMenu
+                <EditMenu
                   title={title}
                   onDelete={deleteQuest}
-                  onEdit={updateQuest}
+                  onEdit={handleUpdateQuest}
                   content={quests.find((q) => q.id === id) as Quest}
                 />
               </div>

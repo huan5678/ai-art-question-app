@@ -38,7 +38,6 @@ const questInputSchema = z.object({
 });
 
 const QuestInput: FC<IQuestInputProps> = ({
-  questCount,
   categories,
   onCreateQuest,
   status,
@@ -61,10 +60,7 @@ const QuestInput: FC<IQuestInputProps> = ({
 
   const onSubmit = (data: { quests: IQuestInputState[] }) => {
     setIsPending(true);
-    onCreateQuest({
-      data: data.quests,
-      userId: session?.user?.id as string,
-    });
+    onCreateQuest(data.quests, session?.user?.id as string);
     reset();
     setIsPending(false);
   };
@@ -81,9 +77,6 @@ const QuestInput: FC<IQuestInputProps> = ({
           className="space-y-4"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div>
-            <h2 className="text-lg">已有題目 ({questCount})</h2>
-          </div>
           <motion.ul layout className="space-y-4">
             {fields.map((item, index) => (
               <motion.li

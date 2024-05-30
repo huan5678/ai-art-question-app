@@ -136,13 +136,21 @@ const Page = () => {
           <div className="border-b pb-4">
             <h2 className="md:text-lg">題目設定</h2>
             <QuestInput
-              questCount={quests.length}
               categories={categories}
               onCreateQuest={() => handleCreateQuest}
               status={isHydrated}
             />
           </div>
-          <QuestTable quests={quests} />
+          <div className="space-y-2 md:space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="md:text-lg">題目列表</h2>
+              <div className="text-lg">
+                已有題目{' '}
+                <span className="text-sm font-bold">({quests.length})</span>
+              </div>
+            </div>
+            <QuestTable quests={quests} />
+          </div>
         </div>
       )}
     </section>

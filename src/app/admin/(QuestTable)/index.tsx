@@ -7,13 +7,13 @@ import EditMenu from '../(EditMenu)';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
 import useQuestStore from '@/stores/questStore';
+import type { TEditMenuOnEditProps } from '@/types/quest';
 
 interface QuestTableProps {
   quests: Quest[];
@@ -33,9 +33,12 @@ export function QuestTable({ quests }: QuestTableProps) {
     return category?.name || '未指定題庫';
   };
 
+  const handleUpdateQuest = async (data: TEditMenuOnEditProps) => {
+    await updateQuest(data as Quest);
+  };
+
   return (
     <Table>
-      <TableCaption>問題列表</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="">題目名稱</TableHead>
@@ -62,7 +65,7 @@ export function QuestTable({ quests }: QuestTableProps) {
               <EditMenu
                 title={quest.title}
                 content={quest}
-                onEdit={() => updateQuest}
+                onEdit={handleUpdateQuest}
                 onDelete={deleteQuest}
               />
             </TableCell>
