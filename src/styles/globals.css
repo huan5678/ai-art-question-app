@@ -33,6 +33,8 @@
     --n6: #e6e8ec;
     --n7: #f4f5f6;
     --n8: #fcfcfd;
+
+    --overlay-color: 5, 5, 5;
   }
 
   .dark {
@@ -65,4 +67,45 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.radial-gradient {
+    background: radial-gradient(
+            circle at 50% 0%,
+            rgba(var(--radial-gradient-background), 0.05) 0%,
+            transparent 60%
+        )
+        rgba(var(--solid-color-background), 1);
+}
+
+.linear-mask {
+    mask-image: linear-gradient(
+        -75deg,
+        white calc(var(--x) + 20%),
+        transparent calc(var(--x) + 30%),
+        white calc(var(--x) + 100%)
+    );
+    -webkit-mask-image: linear-gradient(
+        -75deg,
+        white calc(var(--x) + 20%),
+        transparent calc(var(--x) + 30%),
+        white calc(var(--x) + 100%)
+    );
+}
+
+.linear-overlay {
+    background-image: linear-gradient(
+        -75deg,
+        rgba(var(--overlay-color), 0.1) calc(var(--x) + 20%),
+        rgba(var(--overlay-color), 0.5) calc(var(--x) + 25%),
+        rgba(var(--overlay-color), 0.1) calc(var(--x) + 100%)
+    );
+    mask:
+        linear-gradient(black, black) content-box,
+        linear-gradient(black, black);
+    -webkit-mask:
+        linear-gradient(black, black) content-box,
+        linear-gradient(black, black);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
 }

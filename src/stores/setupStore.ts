@@ -1,6 +1,6 @@
-import type { Quest } from '@prisma/client';
 import { create } from 'zustand';
 
+import type { Quest } from '@/types/quest';
 import type { IConfigurationState } from '@/types/setup';
 
 const configurationStore = (

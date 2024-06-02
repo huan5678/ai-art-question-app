@@ -5,9 +5,9 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import { PlusCircle, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 import { z } from 'zod';
 
+import { DataList } from '@/components/datalist';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -18,21 +18,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import type { IQuestInputProps, IQuestInputState } from '@/types/quest';
+import type { IQuestCreateProps, IQuestInputProps } from '@/types/quest';
 
 const questInputSchema = z.object({
   quests: z.array(
     z.object({
       title: z.string().min(1, '請輸入題目名稱'),
       description: z.string().optional(),
-      categoryId: z.string().optional(),
+      category: z.string().optional(),
     })
   ),
 });
@@ -45,7 +38,7 @@ const QuestInput: FC<IQuestInputProps> = ({
   const [isPending, setIsPending] = useState(true);
   const form = useForm({
     defaultValues: {
-      quests: [{ title: '', description: '', categoryId: '' }],
+      quests: [{ title: '', description: '', category: '' }],
     },
     resolver: zodResolver(questInputSchema),
   });
@@ -56,11 +49,9 @@ const QuestInput: FC<IQuestInputProps> = ({
     name: 'quests',
   });
 
-  const { data: session } = useSession();
-
-  const onSubmit = (data: { quests: IQuestInputState[] }) => {
+  const onSubmit = (data: { quests: IQuestCreateProps[] }) => {
     setIsPending(true);
-    onCreateQuest(data.quests, session?.user?.id as string);
+    onCreateQuest(data.quests);
     reset();
     setIsPending(false);
   };
@@ -93,7 +84,7 @@ const QuestInput: FC<IQuestInputProps> = ({
                   name={`quests.${index}.title`}
                   render={({ field }) => (
                     <FormItem className="w-full md:w-auto md:flex-1">
-                      <FormLabel>題目名稱</FormLabel>
+                      <FormLabel htmlFor={`title-${index}`}>題目名稱</FormLabel>
                       <FormControl>
                         <Input
                           id={`title-${index}`}
@@ -112,7 +103,9 @@ const QuestInput: FC<IQuestInputProps> = ({
                   name={`quests.${index}.description`}
                   render={({ field }) => (
                     <FormItem className="w-full md:w-auto md:flex-1">
-                      <FormLabel>題目描述</FormLabel>
+                      <FormLabel htmlFor={`description-${index}`}>
+                        題目描述
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id={`description-${index}`}
@@ -128,40 +121,25 @@ const QuestInput: FC<IQuestInputProps> = ({
                 />
                 <FormField
                   control={control}
-                  name={`quests.${index}.categoryId`}
+                  name={`quests.${index}.category`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>題組</FormLabel>
+                      <FormLabel htmlFor={`category-${index}`}>題庫</FormLabel>
                       <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
+                        <DataList
+                          id={`category-${index}`}
+                          data={categories}
+                          onSelect={field.onChange}
                           disabled={isPending}
                           value={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="選擇題組">
-                              {field.value
-                                ? categories.find((c) => c.id === field.value)
-                                    ?.name
-                                : '選擇題組'}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent position="popper">
-                            <SelectItem value="''">選擇題組</SelectItem>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <div className="flex items-end justify-end gap-2">
-                  {fields.length - 1 !== index && (
+                  {fields.length !== 1 && (
                     <Button
                       variant="destructive"
                       onClick={() => remove(index)}
@@ -177,7 +155,7 @@ const QuestInput: FC<IQuestInputProps> = ({
                       type="button"
                       variant={'secondary'}
                       onClick={() =>
-                        append({ title: '', description: '', categoryId: '' })
+                        append({ title: '', description: '', category: '' })
                       }
                       disabled={isPending}
                       className="disabled:pointer-events-none disabled:opacity-20"

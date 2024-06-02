@@ -1,73 +1,93 @@
 'use server';
 
-import type { Quest } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 
-import prisma from '@/lib/prisma';
-import type { TQuestCreateProps } from '@/types/quest';
-import type { TResponse } from '@/types/response';
+import { getSheetData, updateSheetData } from '@/lib/google';
+import type {
+  ColumnMapping,
+  IQuestCreateProps,
+  IQuestUpdateState,
+} from '@/types/quest';
 
 export async function createQuest(
-  props: TQuestCreateProps | TQuestCreateProps[]
+  props: IQuestCreateProps | IQuestCreateProps[]
 ) {
   try {
-    let data = props;
-    if (!Array.isArray(props)) {
-      data = props as TQuestCreateProps;
-      if (!data.title) {
+    const data: IQuestCreateProps[] = Array.isArray(props) ? props : [props];
+
+    const resultData: ColumnMapping[] = [];
+
+    // Validation
+    for (const d of data) {
+      if (!d.title) {
         throw new Error('Quest title is required');
       }
-      if (!data.userId) {
-        throw new Error('User ID is required');
-      }
-      await prisma.quest.create({
-        data: {
-          title: data.title,
-          description: data.description,
-          categoryId: data.categoryId,
-          userId: data.userId,
-        },
-      });
     }
-    if (Array.isArray(data)) {
-      for (const d of data) {
-        if (!d.title) {
-          throw new Error('Quest title is required');
-        }
 
-        if (!d.userId) {
-          throw new Error('User ID is required');
-        }
-        await prisma.quest.createMany({
-          data: data.map((d) => ({
-            title: d.title as string,
-            description: d.description,
-            categoryId: d.categoryId,
-            userId: d.userId,
-          })),
-        });
-      }
+    const sheetDataResponse = await getSheetData();
+    if (!sheetDataResponse.state) {
+      throw new Error(sheetDataResponse.message);
     }
-    const quests = await prisma.quest.findMany();
+
+    const sheetData = sheetDataResponse.result;
+    if (sheetData) {
+      const existingTitles = sheetData.map((row) => row.title);
+      for (const d of data) {
+        if (existingTitles.includes(d.title)) {
+          throw new Error(`Quest with title "${d.title}" already exists`);
+        }
+      }
+      const newRows = data.map((d) => {
+        return {
+          id: uuidv4(),
+          title: d.title,
+          description: d.description || '',
+          category: d.category || '',
+        };
+      });
+
+      resultData.push(...sheetData, ...newRows);
+    } else {
+      const newRows = data.map((d) => {
+        return {
+          id: uuidv4(),
+          title: d.title,
+          description: d.description || '',
+          category: d.category || '',
+        };
+      });
+
+      resultData.push(...newRows);
+    }
+    await updateSheetData(resultData);
+
     return {
       state: true,
       message: 'Quest created',
-      result: { quests },
+      result: { quests: resultData },
     };
   } catch (error) {
     return {
       state: false,
-      message: (error as unknown as Error).message,
+      message: (error as Error).message,
       result: null,
     };
   }
 }
 
 export async function getQuests() {
-  const quests = await prisma.quest.findMany();
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
+  }
   return {
     state: true,
     message: 'Quests fetched',
-    result: { quests },
+    result: { quests: sheetDataResponse.result },
   };
 }
 
@@ -75,9 +95,16 @@ export async function getQuestById(id: string) {
   if (!id) {
     return Error('Quest ID is required');
   }
-  const quest = await prisma.quest.findUnique({
-    where: { id },
-  });
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
+  }
+
+  const quest = sheetDataResponse.result?.find((row) => row.id === id);
   if (!quest) {
     return Error('Quest not found');
   }
@@ -92,9 +119,18 @@ export async function getQuestsByCategoryId(categoryId: string) {
   if (!categoryId) {
     return Error('Category ID is required');
   }
-  const quests = await prisma.quest.findMany({
-    where: { categoryId },
-  });
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
+  }
+
+  const quests = sheetDataResponse.result?.filter(
+    (row) => row.categoryId === categoryId
+  );
   return {
     state: true,
     message: 'Quests fetched',
@@ -102,33 +138,42 @@ export async function getQuestsByCategoryId(categoryId: string) {
   };
 }
 
-export async function updateQuest(data: Quest) {
-  console.log('updateQuest input:', data);
+export async function updateQuest(data: IQuestUpdateState) {
   const { id } = data;
   if (!id) {
     return Error('Quest ID is required');
   }
-  const quest = await prisma.quest.findUnique({
-    where: { id },
-  });
-  if (!quest) {
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
+  }
+
+  const quests = sheetDataResponse.result;
+  if (!quests) {
+    return Error('Quests not found');
+  }
+
+  const index = quests.findIndex((row) => row.id === id);
+  if (index === -1) {
     return Error('Quest not found');
   }
-  await prisma.quest.update({
-    where: { id: data.id },
-    data: {
-      title: data.title,
-      description: data.description,
-      categoryId: data.categoryId,
-    },
-  });
-  const { result } = await ((await getQuestById(id)) as unknown as Promise<
-    TResponse<{ quest: Quest }>
-  >);
+
+  quests[index] = {
+    ...quests[index],
+    title: data.title as string,
+    description: data.description as string,
+    categoryId: data.category as string,
+  };
+
+  await updateSheetData(quests);
   return {
     state: true,
     message: 'Quest updated',
-    result,
+    result: { quest: quests[index] },
   };
 }
 
@@ -137,19 +182,25 @@ export async function deleteQuest(id: string) {
     return Error('Quest ID is required');
   }
 
-  const quest = await prisma.quest.findUnique({
-    where: { id },
-  });
-  if (!quest) {
-    return Error('Quest not found');
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
   }
-  await prisma.quest.delete({
-    where: { id },
-  });
-  const { result } = await getQuests();
+
+  const quests = sheetDataResponse.result;
+  if (!quests) {
+    return Error('Quests not found');
+  }
+  const updatedQuests = quests.filter((row) => row.id !== id);
+
+  await updateSheetData(updatedQuests);
   return {
     state: true,
     message: 'Quest deleted',
-    result,
+    result: { quests: updatedQuests },
   };
 }

@@ -1,21 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import * as React from 'react';
 import {
-  type ColumnDef,
-  type ColumnFiltersState,
+  CaretSortIcon,
+  ChevronDownIcon,
+  DotsHorizontalIcon,
+} from '@radix-ui/react-icons';
+import {
+  ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  type SortingState,
+  SortingState,
   useReactTable,
-  type VisibilityState,
+  VisibilityState,
 } from '@tanstack/react-table';
-import { Check, ChevronDown, ChevronsUpDown, Ellipsis } from 'lucide-react';
-
-import EditMenu from '../(EditMenu)';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -37,68 +39,149 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import useQuestStore from '@/stores/questStore';
-import type { ColumnMapping, Quest, TEditMenuOnEditProps } from '@/types/quest';
 
-interface QuestTableProps {
-  quests: ColumnMapping[];
-}
+const data: Payment[] = [
+  {
+    id: 'm5gr84i9',
+    amount: 316,
+    status: 'success',
+    email: 'ken99@yahoo.com',
+  },
+  {
+    id: '3u1reuv4',
+    amount: 242,
+    status: 'success',
+    email: 'Abe45@gmail.com',
+  },
+  {
+    id: 'derv1ws0',
+    amount: 837,
+    status: 'processing',
+    email: 'Monserrat44@gmail.com',
+  },
+  {
+    id: '5kma53ae',
+    amount: 874,
+    status: 'success',
+    email: 'Silas22@gmail.com',
+  },
+  {
+    id: 'bhqecj4p',
+    amount: 721,
+    status: 'failed',
+    email: 'carmella@hotmail.com',
+  },
+];
 
-export function QuestTable({ quests }: QuestTableProps) {
-  const [updateQuest, deleteQuest] = useQuestStore((state) => [
-    state.updateQuest,
-    state.deleteQuest,
-  ]);
+export type Payment = {
+  id: string;
+  amount: number;
+  status: 'pending' | 'processing' | 'success' | 'failed';
+  email: string;
+};
 
-  const handleUpdateQuest = async (data: TEditMenuOnEditProps) => {
-    await updateQuest(data as Quest);
-  };
-
-  const columns: ColumnDef<ColumnMapping>[] = [
-    {
-      accessorKey: 'title',
-      header: () => '題目名稱',
-      cell: ({ row }) => <span>{row.original.title}</span>,
+export const columns: ColumnDef<Payment>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue('status')}</div>
+    ),
+  },
+  {
+    accessorKey: 'email',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Email
+          <CaretSortIcon className="ml-2 size-4" />
+        </Button>
+      );
     },
-    {
-      accessorKey: 'description',
-      header: () => <div className="text-center">題目描述</div>,
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.description ? row.original.description : '無描述'}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'category',
-      header: () => <div className="text-center">題庫</div>,
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.category ? row.original.category : '未加入題庫'}
-        </div>
-      ),
-    },
-    {
-      id: 'actions',
-      enableHiding: false,
-      cell: ({ row }) => (
-        <EditMenu
-          title={row.original.title}
-          content={row.original}
-          onEdit={handleUpdateQuest}
-          onDelete={deleteQuest}
-        />
-      ),
-    },
-  ];
+    cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
+  },
+  {
+    accessorKey: 'amount',
+    header: () => <div className="text-right">Amount</div>,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue('amount'));
 
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
+      // Format the amount as a dollar amount
+      const formatted = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(amount);
+
+      return <div className="text-right font-medium">{formatted}</div>;
+    },
+  },
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      const payment = row.original;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="size-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <DotsHorizontalIcon className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(payment.id)}
+            >
+              Copy payment ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>View customer</DropdownMenuItem>
+            <DropdownMenuItem>View payment details</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];
+
+export function DataTableDemo() {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
-    data: quests,
+    data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -120,17 +203,17 @@ export function QuestTable({ quests }: QuestTableProps) {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter titles..."
-          value={(table.getColumn('title')?.getFilterValue() as string) ?? ''}
+          placeholder="Filter emails..."
+          value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
-            table.getColumn('title')?.setFilterValue(event.target.value)
+            table.getColumn('email')?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 size-4" />
+              Columns <ChevronDownIcon className="ml-2 size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -231,5 +314,3 @@ export function QuestTable({ quests }: QuestTableProps) {
     </div>
   );
 }
-
-export default QuestTable;

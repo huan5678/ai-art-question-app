@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { Category, Quest } from '@prisma/client';
-import { useSession } from 'next-auth/react';
 
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -31,7 +29,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import type { TEditMenuOnEditProps } from '@/types/quest';
+import type {
+  Category,
+  ColumnMapping,
+  TEditMenuOnEditProps,
+} from '@/types/quest';
 
 interface EditMenuProps<T> {
   title: string;
@@ -45,7 +47,7 @@ const EditMenu = ({
   onDelete,
   onEdit,
   content,
-}: EditMenuProps<Quest | Category>) => {
+}: EditMenuProps<ColumnMapping | Category>) => {
   const [status, setStatus] = useState<string>('idle');
   const [isOpenDropdown, setIsOpenDropdown] = useState<string>('');
 
@@ -57,13 +59,10 @@ const EditMenu = ({
 
   const { control, handleSubmit, reset } = form;
 
-  const { data: session } = useSession();
-
-  const onSubmit = (data: { content: Quest | Category }) => {
+  const onSubmit = (data: { content: ColumnMapping | Category }) => {
     setStatus('pending');
     onEdit({
       ...data.content,
-      userId: session?.user?.id as string,
     });
     reset();
     setStatus('idle');
