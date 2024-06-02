@@ -1,6 +1,5 @@
 'use client';
 import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
@@ -24,15 +23,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
   return (
-    <motion.main
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="flex max-h-screen overflow-hidden"
-    >
+    <main className="flex max-h-screen overflow-hidden">
       <Sidebar links={links} socials={[]} />
       <Layout>{children}</Layout>
-    </motion.main>
+    </main>
   );
 }

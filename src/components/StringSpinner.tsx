@@ -54,9 +54,9 @@ const StringSpinner = ({
       {itemsToShow().map((item, i) => (
         <motion.div
           layout
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 25 }}
-          exit={{ opacity: 0, y: 50 }}
+          initial={{ y: -50 }}
+          animate={{ y: 25 }}
+          exit={{ y: 50 }}
           transition={{ duration: 0.3, delay: i * 0.2 }}
           key={item?.id}
           ref={itemRef}

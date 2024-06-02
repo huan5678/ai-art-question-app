@@ -50,6 +50,8 @@ const EditMenu = ({
 }: EditMenuProps<ColumnMapping | Category>) => {
   const [status, setStatus] = useState<string>('idle');
   const [isOpenDropdown, setIsOpenDropdown] = useState<string>('');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
   const form = useForm({
     defaultValues: {
@@ -67,6 +69,20 @@ const EditMenu = ({
     reset();
     setStatus('idle');
     setIsOpenDropdown('');
+    setIsEditDialogOpen(false);
+  };
+
+  const handleDialogClose = () => {
+    setStatus('idle');
+    setIsOpenDropdown('');
+    setIsEditDialogOpen(false);
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      handleDialogClose();
+    }
   };
 
   return (
@@ -83,11 +99,12 @@ const EditMenu = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <div className="flex flex-col gap-1">
-          <Dialog onOpenChange={(isOpen) => !isOpen && setIsOpenDropdown('')}>
-            <DialogTrigger>
+          <Dialog open={isEditDialogOpen} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
+                  setIsEditDialogOpen(true);
                 }}
               >
                 編輯
@@ -145,31 +162,29 @@ const EditMenu = ({
                       )}
                     />
                   )}
-                  {'description' in content && (
-                    <FormField
-                      control={control}
-                      name="content.description"
-                      render={({ field }) => (
-                        <FormItem className="w-full md:w-auto md:flex-1">
-                          <FormLabel htmlFor={'content.description'}>
-                            描述
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              id={'content.description'}
-                              type="text"
-                              placeholder={'請輸入描述'}
-                              {...field}
-                              value={field.value ?? ''}
-                              className="disabled:pointer-events-none disabled:opacity-20"
-                              disabled={status === 'pending'}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  <FormField
+                    control={control}
+                    name="content.description"
+                    render={({ field }) => (
+                      <FormItem className="w-full md:w-auto md:flex-1">
+                        <FormLabel htmlFor={'content.description'}>
+                          描述
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id={'content.description'}
+                            type="text"
+                            placeholder={'請輸入描述'}
+                            {...field}
+                            value={field.value ?? ''}
+                            className="disabled:pointer-events-none disabled:opacity-20"
+                            disabled={status === 'pending'}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <DialogFooter>
                     <Button type="submit">送出</Button>
                     <DialogClose asChild>
@@ -183,9 +198,14 @@ const EditMenu = ({
             </DialogContent>
           </Dialog>
           <DropdownMenuSeparator />
-          <Dialog onOpenChange={(isOpen) => !isOpen && setIsOpenDropdown('')}>
-            <DialogTrigger>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <Dialog open={isDeleteDialogOpen} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setIsDeleteDialogOpen(true);
+                }}
+              >
                 刪除
               </DropdownMenuItem>
             </DialogTrigger>

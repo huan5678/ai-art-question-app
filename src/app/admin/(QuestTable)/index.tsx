@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type FilterFn,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -13,19 +15,16 @@ import {
   useReactTable,
   type VisibilityState,
 } from '@tanstack/react-table';
-import { Check, ChevronDown, ChevronsUpDown, Ellipsis } from 'lucide-react';
+import { ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { useDebounceCallback } from 'usehooks-ts';
 
 import EditMenu from '../(EditMenu)';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -37,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
 import type { ColumnMapping, Quest, TEditMenuOnEditProps } from '@/types/quest';
 
@@ -44,58 +44,110 @@ interface QuestTableProps {
   quests: ColumnMapping[];
 }
 
+const columnMapping: { [key: string]: string } = {
+  id: 'ID',
+  title: '題目',
+  description: '描述',
+  category: '題庫',
+};
+
 export function QuestTable({ quests }: QuestTableProps) {
   const [updateQuest, deleteQuest] = useQuestStore((state) => [
     state.updateQuest,
     state.deleteQuest,
   ]);
 
-  const handleUpdateQuest = async (data: TEditMenuOnEditProps) => {
-    await updateQuest(data as Quest);
-  };
+  const handleUpdateQuest = useCallback(
+    async (data: TEditMenuOnEditProps) => {
+      await updateQuest(data as Quest);
+    },
+    [updateQuest]
+  );
 
-  const columns: ColumnDef<ColumnMapping>[] = [
-    {
-      accessorKey: 'title',
-      header: () => '題目名稱',
-      cell: ({ row }) => <span>{row.original.title}</span>,
+  const globalFilterFn = useCallback<FilterFn<ColumnMapping>>(
+    (row, columnId, value, addMeta) => {
+      if (typeof value !== 'string') return true;
+      const titleRank = rankItem(row.original.title, value);
+      const descriptionRank = rankItem(row.original.description, value);
+      addMeta(titleRank);
+      addMeta(descriptionRank);
+      return titleRank.passed || descriptionRank.passed;
     },
-    {
-      accessorKey: 'description',
-      header: () => <div className="text-center">題目描述</div>,
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.description ? row.original.description : '無描述'}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'category',
-      header: () => <div className="text-center">題庫</div>,
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.category ? row.original.category : '未加入題庫'}
-        </div>
-      ),
-    },
-    {
-      id: 'actions',
-      enableHiding: false,
-      cell: ({ row }) => (
-        <EditMenu
-          title={row.original.title}
-          content={row.original}
-          onEdit={handleUpdateQuest}
-          onDelete={deleteQuest}
-        />
-      ),
-    },
-  ];
+    []
+  );
+
+  const columns = useMemo<ColumnDef<ColumnMapping>[]>(
+    () => [
+      {
+        accessorKey: 'title',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            題目
+            <ChevronsUpDown className="ml-2 size-4" />
+          </Button>
+        ),
+        cell: ({ row }) => <span>{row.original.title}</span>,
+      },
+      {
+        accessorKey: 'description',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            描述
+            <ChevronsUpDown className="ml-2 size-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">
+            {row.original.description ? row.original.description : '無描述'}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'category',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            題庫
+            <ChevronsUpDown className="ml-2 size-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">
+            {row.original.category ? row.original.category : '未加入題庫'}
+          </div>
+        ),
+      },
+      {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }) => (
+          <EditMenu
+            title={row.original.title}
+            content={row.original}
+            onEdit={handleUpdateQuest}
+            onDelete={deleteQuest}
+          />
+        ),
+      },
+    ],
+    [deleteQuest, handleUpdateQuest]
+  );
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [globalFilter, setGlobalFilter] = useState('');
+
+  const debouncedGlobalFilter = useDebounceCallback(setGlobalFilter, 200);
 
   const table = useReactTable({
     data: quests,
@@ -108,11 +160,14 @@ export function QuestTable({ quests }: QuestTableProps) {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: debouncedGlobalFilter,
+    globalFilterFn,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   });
 
@@ -120,17 +175,16 @@ export function QuestTable({ quests }: QuestTableProps) {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter titles..."
-          value={(table.getColumn('title')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('title')?.setFilterValue(event.target.value)
-          }
+          type="text"
+          placeholder="關鍵字搜尋"
+          value={globalFilter ?? ''}
+          onChange={(event) => debouncedGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 size-4" />
+              選擇顯示 <ChevronDown className="ml-2 size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -147,7 +201,7 @@ export function QuestTable({ quests }: QuestTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {columnMapping[column.id]}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -161,7 +215,13 @@ export function QuestTable({ quests }: QuestTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      className={cn(
+                        header.id === 'actions' && 'w-16',
+                        header.id === 'title' ? 'text-left' : 'text-center'
+                      )}
+                      key={header.id}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -205,10 +265,6 @@ export function QuestTable({ quests }: QuestTableProps) {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
         <div className="space-x-2">
           <Button
             variant="outline"

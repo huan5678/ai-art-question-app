@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import { useSession } from 'next-auth/react';
-import type { Quest } from 'prisma/prisma-client';
 import { z } from 'zod';
 
 import EditMenu from '../../(EditMenu)';
@@ -30,15 +28,20 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
 import type {
-  IQuestInputState,
-  QuestType,
+  IQuestCreateProps,
+  Quest,
   TEditMenuOnEditProps,
 } from '@/types/quest';
 
-type QuestCardProps = QuestType & {
+type QuestCardProps = Quest & {
   handleDragStart: (
     e: DragEvent,
-    data: { title: string; id: string; categoryId: string | null }
+    data: {
+      title: string;
+      id: string;
+      category: string | null;
+      description: string | null;
+    }
   ) => void;
   description?: string | null;
   statute?: boolean;
@@ -47,7 +50,7 @@ type QuestCardProps = QuestType & {
 const QuestCard = ({
   title,
   id,
-  categoryId,
+  category,
   handleDragStart,
   description,
   statute,
@@ -68,7 +71,7 @@ const QuestCard = ({
         layoutId={id}
         draggable={!statute}
         onDragStart={(e: DragEvent) =>
-          handleDragStart(e, { title, id, categoryId: categoryId })
+          handleDragStart(e, { title, id, category, description })
         }
         dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
         className={cn(!statute && 'cursor-grab active:cursor-grabbing')}
@@ -101,8 +104,8 @@ const QuestCard = ({
 };
 
 type AddQuestCardProps = {
-  categoryId: string | null;
-  createQuest: (quest: IQuestInputState[], userId: string) => Promise<void>;
+  category: string | null;
+  createQuest: (quest: IQuestCreateProps[]) => Promise<void>;
 };
 
 const questInputSchema = z.object({
@@ -110,15 +113,14 @@ const questInputSchema = z.object({
   description: z.string().optional(),
 });
 
-const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
+const AddQuestCard = ({ category, createQuest }: AddQuestCardProps) => {
   const [adding, setAdding] = useState(false);
-  const { data: session } = useSession();
 
   const form = useForm({
     defaultValues: {
       title: '',
       description: '',
-      categoryId,
+      category,
     },
     resolver: zodResolver(questInputSchema),
   });
@@ -131,7 +133,7 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
 
   const onSubmit = (data: { title: string; description: string }) => {
     console.log(data);
-    createQuest([{ ...data, categoryId }], session?.user?.id as string);
+    createQuest([{ ...data, category: category ?? '' }]);
     reset();
     setAdding(false);
   };
@@ -141,9 +143,9 @@ const AddQuestCard = ({ categoryId, createQuest }: AddQuestCardProps) => {
       {adding ? (
         <Form {...form}>
           <motion.form
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
+            exit={{ height: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             layout
             className="space-y-2 overflow-hidden p-2"

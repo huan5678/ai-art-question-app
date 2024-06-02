@@ -7,9 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { Category, Quest } from '@prisma/client';
 
-import EditMenu from '../../(EditMenu)';
 import { AddQuestCard, QuestCard } from '../(QuestCard)';
 
 import {
@@ -21,12 +19,7 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
-import type {
-  CategoryType,
-  IQuestState,
-  QuestType,
-  TEditMenuOnEditProps,
-} from '@/types/quest';
+import type { Category, ColumnMapping, IQuestState } from '@/types/quest';
 
 const QuestBoard = () => {
   const [quests, categories, createQuest, updateQuestCategory] = useQuestStore(
@@ -73,6 +66,19 @@ const QuestBoard = () => {
       };
     }
   }, []);
+
+  const handleDragStart = (
+    e: DragEvent,
+    data: {
+      title: string;
+      id: string;
+      category: string | null;
+      description: string | null;
+    }
+  ) => {
+    (e.dataTransfer as DataTransfer).setData('questId', data.id);
+  };
+
   return (
     <div
       ref={scrollRef}
@@ -100,17 +106,15 @@ const QuestBoard = () => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="w-full shrink-0 space-y-2 md:space-y-4">
-                {quests.map((q: Quest) => {
+                {quests.map((q: ColumnMapping) => {
                   return (
                     <QuestCard
+                      id={q.id}
+                      title={q.title}
+                      description={q.description || ''}
+                      category={q.category}
                       key={q.id}
-                      {...q}
-                      handleDragStart={(e, quest) =>
-                        (e.dataTransfer as DataTransfer).setData(
-                          'questId',
-                          quest.id
-                        )
-                      }
+                      handleDragStart={handleDragStart}
                       statute={true}
                     />
                   );
@@ -122,24 +126,21 @@ const QuestBoard = () => {
       </Card>
       <Column
         title="未指定題庫"
-        categoryId={null}
-        quests={quests.filter((q) => !q.categoryId)}
+        category={null}
+        quests={quests.filter((q) => !q.category)}
         updateQuestCategory={updateQuestCategory}
-        showMenu={false}
       >
-        <AddQuestCard categoryId={null} createQuest={createQuest} />
+        <AddQuestCard category={null} createQuest={createQuest} />
       </Column>
       {categories?.map((category) => (
         <Column
-          title={category.name}
+          title={`題庫 ${category.name}`}
           key={category.id}
-          categoryId={category.id}
-          quests={quests.filter((q) => q.categoryId === category.id)}
-          updateQuestCategory={updateQuestCategory}
-          showMenu={true}
           category={category}
+          quests={quests.filter((q) => q.category === category.name)}
+          updateQuestCategory={updateQuestCategory}
         >
-          <AddQuestCard categoryId={category.id} createQuest={createQuest} />
+          <AddQuestCard category={category.name} createQuest={createQuest} />
         </Column>
       ))}
     </div>
@@ -147,33 +148,32 @@ const QuestBoard = () => {
 };
 
 type ColumnProps = {
-  quests: Quest[];
-  categoryId: string | null;
+  quests: ColumnMapping[];
+  category: Category | null;
   updateQuestCategory: IQuestState['updateQuestCategory'];
   children?: ReactNode;
   title: string;
-  showMenu: boolean;
-  category?: Category;
 };
 
 const Column = ({
   title,
   quests,
-  categoryId,
   updateQuestCategory,
-  showMenu = false,
   children,
   category,
 }: ColumnProps) => {
   const [active, setActive] = useState(false);
 
-  const [updateCategory, deleteCategory] = useQuestStore((state) => [
-    state.updateCategory,
-    state.deleteCategory,
-  ]);
-
-  const handleDragStart = (e: DragEvent, quest: QuestType) => {
-    (e.dataTransfer as DataTransfer).setData('questId', quest.id);
+  const handleDragStart = (
+    e: DragEvent,
+    data: {
+      title: string;
+      id: string;
+      category: string | null;
+      description: string | null;
+    }
+  ) => {
+    (e.dataTransfer as DataTransfer).setData('questId', data.id);
   };
 
   const handleDrop = async (e: DragEvent) => {
@@ -182,8 +182,8 @@ const Column = ({
     setActive(false);
     if (!questId) return;
     const quest = quests.find((q) => q.id === questId);
-    if (quest?.categoryId === categoryId) return;
-    await updateQuestCategory({ questId, categoryId });
+    if (quest?.category === category?.name) return;
+    await updateQuestCategory({ questId, category: category?.name || null });
   };
 
   const handleDragOver = (e: DragEvent) => {
@@ -193,12 +193,6 @@ const Column = ({
 
   const handleDragLeave = () => {
     setActive(false);
-  };
-
-  const handleUpdateCategory = async (data: TEditMenuOnEditProps) => {
-    console.log('handleUpdateCategory data:', data);
-    const { id, name } = data as CategoryType;
-    await updateCategory(id, name);
   };
 
   return (
@@ -218,33 +212,24 @@ const Column = ({
         className={cn('sticky top-0 z-10 bg-[var(--n7)] dark:bg-[var(--n1)]')}
       >
         <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            <span>{title}</span>
-            <span className="relative inline-flex size-8 items-center justify-center rounded-full bg-[var(--n6)] dark:bg-[var(--n3)]">
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-mono text-sm text-[var(--n3)] dark:text-[var(--n6)]">
-                {quests.length}
-              </span>
+          <span>{title}</span>
+          <span className="relative inline-flex size-8 items-center justify-center rounded-full bg-[var(--n6)] dark:bg-[var(--n3)]">
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-mono text-sm text-[var(--n3)] dark:text-[var(--n6)]">
+              {quests.length}
             </span>
-          </div>
-          {showMenu && (
-            <EditMenu
-              title={(category as Category).name}
-              onDelete={deleteCategory}
-              onEdit={handleUpdateCategory}
-              content={category as Category}
-            />
-          )}
+          </span>
         </div>
       </CardHeader>
       <CardContent className="w-56 shrink-0 space-y-2 p-4 md:space-y-4">
-        {quests.map((q: Quest) => {
+        {quests.map((q: ColumnMapping) => {
           return (
             <QuestCard
+              id={q.id}
+              title={q.title}
+              description={q.description || ''}
+              category={q.category}
               key={q.id}
-              {...q}
-              handleDragStart={(e, quest) =>
-                handleDragStart(e, { ...quest, categoryId })
-              }
+              handleDragStart={handleDragStart}
             />
           );
         })}
