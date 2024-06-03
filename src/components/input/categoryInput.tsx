@@ -177,9 +177,6 @@ const CategoryInput: FC<CategoryInputProps> = ({
         <motion.ul layout className="mb-4 space-y-4">
           <motion.li
             layout
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="flex flex-wrap items-end gap-4 md:flex-nowrap"
           >

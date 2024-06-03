@@ -1,4 +1,4 @@
-import type { Quest } from '@prisma/client';
+import type { Quest } from '@/types/quest';
 
 export type IConfigurationState = {
   title: {

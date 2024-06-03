@@ -2,65 +2,33 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useSession } from 'next-auth/react';
 
 import QuestTable from './(QuestTable)';
 
 import { Icons } from '@/components/icons';
-import CategoryInput from '@/components/input/categoryInput';
 import QuestInput from '@/components/input/questInput';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
+import type { IQuestCreateProps } from '@/types/quest';
 
 const Page = () => {
-  const [
-    createQuest,
-    createCategory,
-    updateCategory,
-    deleteCategory,
-    questsStatus,
-    quests,
-    categories,
-    categoriesStatus,
-  ] = useQuestStore((state) => [
-    state.createQuest,
-    state.createCategory,
-    state.updateCategory,
-    state.deleteCategory,
-    state.questsStatus,
-    state.quests,
-    state.categories,
-    state.categoriesStatus,
-  ]);
+  const [createQuest, questsStatus, quests, categories, categoriesStatus] =
+    useQuestStore((state) => [
+      state.createQuest,
+      state.questsStatus,
+      state.quests,
+      state.categories,
+      state.categoriesStatus,
+    ]);
 
   const [isHydrated, setIsHydrated] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
-  const { data: session } = useSession();
   const scrollRef = useRef<HTMLElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleCreateQuest = ({
-    data,
-  }: {
-    data: {
-      title: string;
-      description: string | null;
-      categoryId: string | null;
-    }[];
-  }) => {
-    createQuest(data, session?.user?.id as string);
-  };
-
-  const handleCreateCategory = (name: string) => {
-    createCategory(name);
-  };
-
-  const handleUpdateCategory = ({ id, name }: { id: string; name: string }) => {
-    updateCategory(id, name);
-  };
-
-  const handleDeleteCategory = (id: string) => {
-    deleteCategory(id);
+  const handleCreateQuest = (data: IQuestCreateProps[]) => {
+    console.log('handleCreateQuest', data);
+    createQuest(data);
   };
 
   useEffect(() => {
@@ -124,20 +92,10 @@ const Page = () => {
             <h1 className="text-center text-lg md:text-2xl">管理頁面</h1>
           </div>
           <div className="border-b pb-4">
-            <h2 className="md:text-lg">題組設定</h2>
-            <CategoryInput
-              categories={categories}
-              onCreateCategory={handleCreateCategory}
-              onUpdateCategory={handleUpdateCategory}
-              onDeleteCategory={handleDeleteCategory}
-              status={isHydrated}
-            />
-          </div>
-          <div className="border-b pb-4">
             <h2 className="md:text-lg">題目設定</h2>
             <QuestInput
               categories={categories}
-              onCreateQuest={() => handleCreateQuest}
+              onCreateQuest={handleCreateQuest}
               status={isHydrated}
             />
           </div>
@@ -149,7 +107,7 @@ const Page = () => {
                 <span className="text-sm font-bold">({quests.length})</span>
               </div>
             </div>
-            <QuestTable quests={quests} />
+            <QuestTable quests={quests} categories={categories} />
           </div>
         </div>
       )}

@@ -1,6 +1,5 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Quest } from '@prisma/client';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useLocalStorage } from 'usehooks-ts';
@@ -25,6 +24,7 @@ import useConfetti from '@/hooks/useConfetti';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
 import useConfigurationStore from '@/stores/setupStore';
+import type { Quest } from '@/types/quest';
 
 const Home = () => {
   const [title, drawCount, selectedQuests, setSelectedQuests] =

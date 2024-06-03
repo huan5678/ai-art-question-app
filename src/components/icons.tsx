@@ -1,4 +1,10 @@
 import {
+  ChevronDown,
+  ChevronFirst,
+  ChevronLast,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
   Columns3,
   Component,
   Dock,
@@ -9,7 +15,9 @@ import {
   type LucideProps,
   Moon,
   Plus,
+  PlusCircle,
   Sun,
+  X,
 } from 'lucide-react';
 
 export const Icons = {
@@ -23,6 +31,14 @@ export const Icons = {
   column: (props: LucideProps) => <Columns3 {...props} />,
   menu: (props: LucideProps) => <GripVertical {...props} />,
   load: (props: LucideProps) => <LoaderCircle {...props} />,
+  chevronDown: (props: LucideProps) => <ChevronDown {...props} />,
+  chevronsUpDown: (props: LucideProps) => <ChevronsUpDown {...props} />,
+  chevronLeft: (props: LucideProps) => <ChevronLeft {...props} />,
+  chevronRight: (props: LucideProps) => <ChevronRight {...props} />,
+  chevronFirst: (props: LucideProps) => <ChevronFirst {...props} />,
+  chevronLast: (props: LucideProps) => <ChevronLast {...props} />,
+  plusCircle: (props: LucideProps) => <PlusCircle {...props} />,
+  x: (props: LucideProps) => <X {...props} />,
   github: (props: LucideProps) => (
     <svg viewBox="0 0 438.549 438.549" {...props}>
       <title>GitHub Icon</title>

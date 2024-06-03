@@ -1,29 +1,43 @@
 'use server';
 
-import prisma from '@/lib/prisma';
+import { v4 as uuidv4 } from 'uuid';
 
-export async function createCategory(name: string) {
-  if (name.trim() === '') {
-    return Error('Category name cannot be empty');
-  }
-  await prisma.category.create({
-    data: { name },
-  });
-  const categoriesResult = await getCategories();
-  const { categories } = categoriesResult.result;
-  return {
-    state: true,
-    message: 'Category created',
-    result: { categories },
-  };
-}
+import { getSheetData, updateSheetData } from '@/lib/google';
+import type { Category } from '@/types/quest';
 
 export async function getCategories() {
-  const categories = await prisma.category.findMany({
-    orderBy: {
-      createdAt: 'asc',
-    },
-  });
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
+  }
+  if (!sheetDataResponse.result) {
+    return {
+      state: false,
+      message: 'Categories not found',
+      result: null,
+    };
+  }
+
+  const categoriesMap: { [key: string]: string } = {};
+  for (const row of sheetDataResponse.result) {
+    if (row.category) {
+      if (!categoriesMap[row.category]) {
+        categoriesMap[row.category] = uuidv4();
+      }
+    }
+  }
+
+  const categories: Category[] = Object.entries(categoriesMap).map(
+    ([name, id]) => ({
+      id,
+      name,
+    })
+  );
+
   return {
     state: true,
     message: 'Categories fetched',
@@ -32,44 +46,71 @@ export async function getCategories() {
 }
 
 export async function updateCategory(id: string, name: string) {
-  const category = await prisma.category.findUnique({
-    where: { id },
-  });
-  if (!category) {
-    return Error('Category not found');
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
   }
-  await prisma.category.update({
-    where: { id },
-    data: { name },
+
+  if (!sheetDataResponse.result) {
+    return Error('Categories not found');
+  }
+
+  const resultCategories: Category[] = sheetDataResponse.result.map((row) => {
+    if (row.category === id) {
+      return {
+        id: row.id,
+        name,
+      };
+    }
+    return {
+      id: row.id,
+      name: row.category,
+    };
   });
-  const categoriesResult = await getCategories();
-  const { categories } = categoriesResult.result;
+
+  const resultData = sheetDataResponse.result.map((row) => {
+    if (row.category === id) {
+      return { ...row, category: name };
+    }
+    return row;
+  });
+
+  await updateSheetData(resultData);
   return {
     state: true,
     message: 'Category updated',
-    result: { categories },
+    result: { categories: resultCategories },
   };
 }
 
 export async function deleteCategory(id: string) {
-  const category = await prisma.category.findUnique({
-    where: { id },
-  });
-  if (!category) {
-    return Error('Category not found');
+  const sheetDataResponse = await getSheetData();
+  if (!sheetDataResponse.state) {
+    return {
+      state: false,
+      message: sheetDataResponse.message,
+      result: null,
+    };
   }
-  await prisma.category.delete({
-    where: { id },
+
+  if (!sheetDataResponse.result) {
+    return Error('Categories not found');
+  }
+  const updatedCategories = sheetDataResponse.result.map((row) => {
+    if (row.category === id) {
+      return { ...row, category: '' };
+    }
+    return row;
   });
-  await prisma.quest.updateMany({
-    where: { categoryId: id },
-    data: { categoryId: 'unCategory' },
-  });
-  const categoriesResult = await getCategories();
-  const { categories } = categoriesResult.result;
+
+  await updateSheetData(updatedCategories);
   return {
     state: true,
     message: 'Category deleted',
-    result: { categories },
+    result: { categories: updatedCategories },
   };
 }

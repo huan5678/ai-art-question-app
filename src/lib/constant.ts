@@ -1,9 +1,9 @@
 import { env } from '@/env.mjs';
 
 export const siteConfig = {
-  title: 'Next.js Starter',
+  title: 'AI Art Question App',
   description:
-    'A Next.js starter template, packed with features like TypeScript, Tailwind CSS, Next-auth, Eslint, testing tools and more. Jumpstart your project with efficiency and style.',
+    'AI Art Question App is a full-stack app built with Next.js, React, Tailwind CSS, TypeScript, Shadcn/ui, Next-auth, Prisma, MongoDB, and Google Sheets.',
   keywords: [
     'Next.js',
     'React',
@@ -12,6 +12,8 @@ export const siteConfig = {
     'Shadcn/ui',
     'Next-auth',
     'Prisma',
+    'MongoDB',
+    'Google Sheets',
   ],
   url: env.NEXT_PUBLIC_SITE_URL || 'https://example.com',
   googleSiteVerificationId: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION_ID || '',

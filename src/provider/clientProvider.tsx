@@ -23,7 +23,7 @@ const ClientProvider = () => {
       if (!response.state) {
         throw new Error(response.message);
       }
-      return response.result.quests;
+      return response.result?.quests;
     },
   });
 
@@ -34,7 +34,7 @@ const ClientProvider = () => {
       if (!response.state) {
         throw new Error(response.message);
       }
-      return response.result.categories;
+      return response.result?.categories;
     },
   });
 

@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/lib/constant';
 import { fonts } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
+import AuthProvider from '@/provider/authProvider';
 import ClientProvider from '@/provider/clientProvider';
 import { ReactQueryClientProvider } from '@/provider/ReactQueryClientProvider';
 import { ThemeProvider } from '@/provider/theme-provider';
@@ -53,9 +54,11 @@ const RootLayout = ({ children }: PropsWithChildren) => {
       >
         <ReactQueryClientProvider>
           <ThemeProvider attribute="class" defaultTheme="light">
-            <ClientProvider />
-            {children}
-            <Toaster />
+            <AuthProvider>
+              <ClientProvider />
+              {children}
+              <Toaster />
+            </AuthProvider>
           </ThemeProvider>
         </ReactQueryClientProvider>
       </body>

@@ -1,8 +1,6 @@
-import type { Category, Quest } from '@prisma/client';
 import { create } from 'zustand';
 
 import {
-  createCategory,
   deleteCategory,
   getCategories,
   updateCategory,
@@ -15,10 +13,13 @@ import {
   updateQuest,
 } from '@/actions/quest-actions';
 import type {
-  IQuestInputState,
+  Category,
+  ColumnMapping,
+  IQuestCreateProps,
   IQuestState,
   IQuestUpdateState,
   QueryStatus,
+  Quest,
 } from '@/types/quest';
 import type { TResponse } from '@/types/response';
 
@@ -26,23 +27,28 @@ const questStore = (
   set: (args: Partial<IQuestState>) => void,
   get: () => IQuestState
 ) => ({
-  quests: [] as Quest[],
-  setQuests: (quests: Quest[]) => set({ quests }),
+  quests: [] as ColumnMapping<Quest>[],
+  setQuests: (quests: ColumnMapping<Quest>[]) => set({ quests }),
   questsStatus: 'pending' as QueryStatus,
   setQuestsStatus: (status: QueryStatus) => set({ questsStatus: status }),
-  categories: [] as Category[],
-  setCategories: (categories: Category[]) => set({ categories }),
+  categories: [] as ColumnMapping<Category>[],
+  setCategories: (categories: ColumnMapping<Category>[]) => set({ categories }),
   setCategoriesStatus: (status: QueryStatus) =>
     set({ categoriesStatus: status }),
   categoriesStatus: 'pending' as QueryStatus,
 
-  questsList: [] as Quest[],
-  setQuestsList: (quests: Quest[]) => set({ questsList: quests }),
+  questsList: [] as ColumnMapping<Quest>[],
+  setQuestsList: (quests: ColumnMapping<Quest>[]) =>
+    set({ questsList: quests }),
 
   getQuests: async () => {
     set({ questsStatus: 'pending' });
     try {
       const response = await getQuests();
+      if (!response.result) {
+        set({ questsStatus: 'error' });
+        return;
+      }
       if (response.result.quests) {
         set({ quests: response.result.quests, questsStatus: 'success' });
       } else {
@@ -54,14 +60,18 @@ const questStore = (
     }
   },
 
-  getQuestsByCategory: async (categoryId: string) => {
+  getQuestsByCategory: async (category: string) => {
     set({ questsStatus: 'pending' });
     try {
       const response = (await getQuestsByCategoryId(
-        categoryId
+        category
       )) as unknown as TResponse<{
         quests: Quest[];
       }>;
+      if (!response.result) {
+        set({ questsStatus: 'error' });
+        return;
+      }
       if (response.result.quests) {
         set({ questsList: response.result.quests, questsStatus: 'success' });
       } else {
@@ -77,6 +87,10 @@ const questStore = (
     set({ categoriesStatus: 'pending' });
     try {
       const response = await getCategories();
+      if (!response.result) {
+        set({ categoriesStatus: 'error' });
+        return;
+      }
       if (response.result.categories) {
         set({
           categories: response.result.categories,
@@ -91,31 +105,14 @@ const questStore = (
     }
   },
 
-  createCategory: async (name: string) => {
-    try {
-      set({ categoriesStatus: 'pending' });
-      const response = (await createCategory(name)) as unknown as TResponse<{
-        categories: Category[];
-      }>;
-      set({
-        categories: response.result.categories,
-        categoriesStatus: 'success',
-      });
-    } catch (error) {
-      console.error(error);
-      set({ categoriesStatus: 'error' });
-    }
-  },
-
   updateCategory: async (id: string, name: string) => {
     try {
       set({ categoriesStatus: 'pending' });
-      const response = (await updateCategory(
-        id,
-        name
-      )) as unknown as TResponse<{
-        categories: Category[];
-      }>;
+      const response = await updateCategory(id, name);
+
+      if (!('result' in response) || !response.result) {
+        throw new Error(response.message);
+      }
       set({
         categories: response.result.categories,
         categoriesStatus: 'success',
@@ -142,16 +139,16 @@ const questStore = (
     }
   },
 
-  createQuest: async (data: IQuestInputState[], userId: string) => {
+  createQuest: async (data: IQuestCreateProps[]) => {
     try {
       set({ questsStatus: 'pending' });
-      const resultData = data.map((d) => ({ ...d, userId }));
-      const response = await createQuest(resultData);
-      if (response.state === false) {
+      console.log('createQuest', data);
+      const response = await createQuest(data);
+      if (response.state === false || !response.result) {
         throw new Error(response.message);
       }
       set({
-        quests: response.result?.quests,
+        quests: response.result.quests,
         questsStatus: 'success',
       });
     } catch (error) {
@@ -183,10 +180,10 @@ const questStore = (
 
   updateQuestCategory: async ({
     questId,
-    categoryId,
+    category,
   }: {
     questId: string;
-    categoryId: string | null;
+    category: string | null;
   }) => {
     try {
       set({ questsStatus: 'pending' });
@@ -194,10 +191,13 @@ const questStore = (
       if (!quest) {
         throw new Error('Quest not found');
       }
-      quest.categoryId = categoryId;
-      (await updateQuest(quest)) as unknown as TResponse<{
-        quest: Quest;
-      }>;
+      const updatedQuest: IQuestUpdateState = {
+        id: questId,
+        title: quest.title,
+        description: quest.description,
+        category: category ?? '',
+      };
+      await updateQuest(updatedQuest);
       set({
         quests: get().quests.map((q) =>
           q.id === quest.id ? { ...q, ...quest } : q

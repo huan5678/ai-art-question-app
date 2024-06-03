@@ -65,14 +65,14 @@ const Setup = () => {
             系統設定
           </Button>
         </DrawerTrigger>
-        <DrawerContent className="container max-w-screen">
+        <DrawerContent className="max-w-screen container">
           <DrawerHeader>
             <DrawerTitle>輸入模式</DrawerTitle>
           </DrawerHeader>
           <DrawerDescription>App參數相關設定。</DrawerDescription>
           <div className="flex justify-between">
             <div className="flex flex-col items-end justify-between gap-8 py-8 md:flex-row">
-              <div className="flex flex-col w-full gap-4 md:w-auto md:flex-row">
+              <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row">
                 <div className="flex flex-col items-center justify-center gap-4">
                   <Label htmlFor="mainTitle" className="block text-lg">
                     標題名稱
@@ -115,7 +115,7 @@ const Setup = () => {
                   />
                 </div>
                 <div className="flex flex-col justify-between">
-                  <h3 className="text-lg text-center">選擇題組</h3>
+                  <h3 className="text-center text-lg">選擇題組</h3>
                   <div className="flex gap-4">
                     {categories.map((category) => (
                       <Button
@@ -132,7 +132,7 @@ const Setup = () => {
               </div>
               <div className="grid w-full grid-cols-2 gap-4 md:flex md:w-auto md:justify-center">
                 <Dialog>
-                  <DialogTrigger className="flex items-center justify-center h-10 px-4 py-2 text-sm font-medium transition-colors rounded-md ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                  <DialogTrigger className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
                     顯示題庫資料集
                   </DialogTrigger>
                   <DialogContent>
@@ -151,8 +151,8 @@ const Setup = () => {
                           key={quest.id}
                         >
                           {quest.title}
-                          <div className="p-1 transition duration-300 rounded-full group hover:cursor-pointer hover:bg-red-500">
-                            <X className="text-red-500 transition duration-300 size-6 group-hover:text-white" />
+                          <div className="group rounded-full p-1 transition duration-300 hover:cursor-pointer hover:bg-red-500">
+                            <X className="size-6 text-red-500 transition duration-300 group-hover:text-white" />
                           </div>
                         </li>
                       ))}

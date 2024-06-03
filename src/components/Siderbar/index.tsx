@@ -44,44 +44,6 @@ const Sidebar: FC<ILinksProps> = ({ links, socials = [] }) => {
     }
   };
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        duration: 0.2,
-        ease: 'easeInOut',
-      },
-    },
-  };
-
-  const itemVariant = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        duration: 0.2,
-        ease: 'easeInOut',
-      },
-    },
-  };
-
-  const socialsVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: 20 },
-    visible: { opacity: 1, x: 0 },
-  };
-
   return (
     <aside
       className={cn(
@@ -109,17 +71,17 @@ const Sidebar: FC<ILinksProps> = ({ links, socials = [] }) => {
       </div>
 
       <motion.nav
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="links"
+        layout
+        transition={{
+          duration: 0.5,
+          ease: [0.25, 0.1, 0.25, 1],
+        }}
       >
         {links.map((item) => {
           const IconComponent = Icons[item.icon as keyof typeof Icons];
           return (
             <Link href={item.url} key={item.title}>
               <motion.button
-                variants={itemVariant}
                 key={item.title}
                 className={cn(
                   'flex h-[72px] w-full items-center gap-3 overflow-hidden whitespace-nowrap pl-6 text-left text-[color:var(--n4)] transition-all duration-[0.5s] ease-[cubic-bezier(0.25,0.1,0.25,1)] hover:text-[color:var(--n2)] dark:text-[color:var(--n6)] hover:dark:text-[color:var(--n8)]',
@@ -136,11 +98,13 @@ const Sidebar: FC<ILinksProps> = ({ links, socials = [] }) => {
                   )}
                 />
                 <motion.span
-                  animate={{ opacity: visible ? 0 : 1 }}
-                  transition={{
-                    duration: 0.5,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  }}
+                  className={cn(
+                    'overflow-hidden whitespace-nowrap transition duration-300 ease-in-out',
+                    {
+                      'opacity-0': visible,
+                    }
+                  )}
+                  layout
                 >
                   {item.title}
                 </motion.span>
@@ -150,7 +114,6 @@ const Sidebar: FC<ILinksProps> = ({ links, socials = [] }) => {
         })}
       </motion.nav>
       <motion.nav
-        variants={socialsVariants}
         className="mt-auto flex gap-6 px-6 transition-[0.2s] duration-[all] ease-[ease-in-out]"
         animate={visible ? 'hidden' : 'visible'}
         transition={{
@@ -168,7 +131,6 @@ const Sidebar: FC<ILinksProps> = ({ links, socials = [] }) => {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                variants={itemVariants}
               >
                 <IconComponent />
               </motion.a>

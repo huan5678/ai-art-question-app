@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Quest } from '@prisma/client';
 import { motion } from 'framer-motion';
 import { useInterval } from 'usehooks-ts';
 
 import useConfigurationStore from '@/stores/setupStore';
+import type { Quest } from '@/types/quest';
 
 interface StringSpinnerProps {
   strings: Quest[];
@@ -18,11 +18,7 @@ const StringSpinner = ({
       id: '',
       title: '',
       description: '',
-      accessCount: 0,
-      userId: '',
-      categoryId: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      category: '',
     },
   ],
   interval = 150,
@@ -52,19 +48,19 @@ const StringSpinner = ({
   return (
     <motion.div
       layout
-      className="flex flex-col items-center justify-center gap-2 overflow-hidden divide-y"
+      className="flex flex-col items-center justify-center gap-2 divide-y overflow-hidden"
       style={{ height: `${drawCount * (itemHeightRef.current || 100) + 24}px` }}
     >
       {itemsToShow().map((item, i) => (
         <motion.div
           layout
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 25 }}
-          exit={{ opacity: 0, y: 50 }}
+          initial={{ y: -50 }}
+          animate={{ y: 25 }}
+          exit={{ y: 50 }}
           transition={{ duration: 0.3, delay: i * 0.2 }}
           key={item?.id}
           ref={itemRef}
-          className="grid text-xl text-center place-items-center md:text-6xl"
+          className="grid place-items-center text-center text-xl md:text-6xl"
           style={{ height: `${itemHeightRef.current}px` }}
         >
           <div ref={i === 0 ? itemRef : null}>{item?.title}</div>
