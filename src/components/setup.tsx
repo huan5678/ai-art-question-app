@@ -122,7 +122,7 @@ const Setup = () => {
                         key={category.id}
                         type="button"
                         variant={'outline'}
-                        onClick={handleAddQuestListByCategory(category.id)}
+                        onClick={handleAddQuestListByCategory(category.name)}
                       >
                         {category.name}
                       </Button>

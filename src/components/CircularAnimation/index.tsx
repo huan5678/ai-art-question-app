@@ -26,13 +26,13 @@ const CircularAnimation = ({
       onClick={onClick}
     >
       <motion.svg
+        viewBox="0 0 200 200"
         className={cn(
-          'size-[150px] md:size-[180px]',
+          'size-[200px] origin-center',
           !disabled && 'animate-rotated-text'
         )}
-        viewBox="0 0 200 200"
-        layout
       >
+        <title>Circular Animation</title>
         <defs>
           <path
             id="circle"
@@ -49,7 +49,7 @@ const CircularAnimation = ({
             alignmentBaseline={'central'}
             xlinkHref="#circle"
             className={cn(
-              'origin-[250px_250px] fill-[var(--n2)] text-sm font-normal leading-6 tracking-[1.7px] dark:fill-[var(--n9)] dark:stroke-[var(--n9)]',
+              'origin-[250px_250px] fill-[var(--n2)] text-sm font-light leading-6 tracking-[1.7px] dark:fill-[var(--n6)]',
               disabled && 'opacity-50'
             )}
             textLength={Math.PI * 150}
