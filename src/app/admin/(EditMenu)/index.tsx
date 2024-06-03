@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { DataList } from '@/components/datalist';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +41,7 @@ interface EditMenuProps<T> {
   onDelete: (id: string) => Promise<void>;
   onEdit: (data: TEditMenuOnEditProps) => Promise<void>;
   content: T;
+  categories: Category[];
 }
 
 const EditMenu = ({
@@ -47,6 +49,7 @@ const EditMenu = ({
   onDelete,
   onEdit,
   content,
+  categories,
 }: EditMenuProps<ColumnMapping | Category>) => {
   const [status, setStatus] = useState<string>('idle');
   const [isOpenDropdown, setIsOpenDropdown] = useState<string>('');
@@ -179,6 +182,25 @@ const EditMenu = ({
                             value={field.value ?? ''}
                             className="disabled:pointer-events-none disabled:opacity-20"
                             disabled={status === 'pending'}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="content.category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor={'content.category'}>題庫</FormLabel>
+                        <FormControl>
+                          <DataList
+                            id={'content.category'}
+                            data={categories}
+                            onSelect={field.onChange}
+                            disabled={status === 'pending'}
+                            value={field.value}
                           />
                         </FormControl>
                         <FormMessage />

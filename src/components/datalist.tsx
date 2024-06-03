@@ -70,8 +70,8 @@ export function DataList({
             className="text-foreground w-[200px] justify-between"
             disabled={disabled}
           >
-            <span className="truncate">
-              {!selectedValue && 'Select category'}
+            <span className="text-foreground truncate">
+              {!selectedValue && '選擇題庫'}
               {selectedValue?.name}
             </span>
             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
@@ -82,7 +82,7 @@ export function DataList({
             <CommandInput
               id={id}
               ref={inputRef}
-              placeholder="Search category..."
+              placeholder="搜尋題庫..."
               value={inputValue}
               onValueChange={setInputValue}
             />
@@ -144,7 +144,7 @@ const CommandItemCreate = ({
       onSelect={onSelect}
     >
       <div className={cn('mr-2 size-4')} />
-      Create new Category: &quot;{inputValue}&quot;
+      建立新的題庫: &quot;{inputValue}&quot;
     </CommandItem>
   );
 };

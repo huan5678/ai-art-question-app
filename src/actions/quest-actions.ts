@@ -2,11 +2,17 @@
 
 import { v4 as uuidv4 } from 'uuid';
 
-import { getSheetData, updateSheetData } from '@/lib/google';
+import {
+  createSheetData,
+  deleteSheetData,
+  getSheetData,
+  updateSheetData,
+} from '@/lib/google';
 import type {
   ColumnMapping,
   IQuestCreateProps,
   IQuestUpdateState,
+  Quest,
 } from '@/types/quest';
 
 export async function createQuest(
@@ -15,7 +21,7 @@ export async function createQuest(
   try {
     const data: IQuestCreateProps[] = Array.isArray(props) ? props : [props];
 
-    const resultData: ColumnMapping[] = [];
+    const resultData: ColumnMapping<Quest>[] = [];
 
     // Validation
     for (const d of data) {
@@ -29,7 +35,7 @@ export async function createQuest(
       throw new Error(sheetDataResponse.message);
     }
 
-    const sheetData = sheetDataResponse.result;
+    const sheetData = sheetDataResponse.result as ColumnMapping<Quest>[];
     if (sheetData) {
       const existingTitles = sheetData.map((row) => row.title);
       for (const d of data) {
@@ -59,7 +65,7 @@ export async function createQuest(
 
       resultData.push(...newRows);
     }
-    await updateSheetData(resultData);
+    await createSheetData(resultData);
 
     return {
       state: true,
@@ -87,7 +93,7 @@ export async function getQuests() {
   return {
     state: true,
     message: 'Quests fetched',
-    result: { quests: sheetDataResponse.result },
+    result: { quests: sheetDataResponse.result as ColumnMapping<Quest>[] },
   };
 }
 
@@ -104,7 +110,9 @@ export async function getQuestById(id: string) {
     };
   }
 
-  const quest = sheetDataResponse.result?.find((row) => row.id === id);
+  const quest = sheetDataResponse.result?.find(
+    (row) => row.id === id
+  ) as ColumnMapping<Quest>;
   if (!quest) {
     return Error('Quest not found');
   }
@@ -115,8 +123,8 @@ export async function getQuestById(id: string) {
   };
 }
 
-export async function getQuestsByCategoryId(categoryId: string) {
-  if (!categoryId) {
+export async function getQuestsByCategoryId(category: string) {
+  if (!category) {
     return Error('Category ID is required');
   }
   const sheetDataResponse = await getSheetData();
@@ -129,8 +137,8 @@ export async function getQuestsByCategoryId(categoryId: string) {
   }
 
   const quests = sheetDataResponse.result?.filter(
-    (row) => row.categoryId === categoryId
-  );
+    (row) => row.category === category
+  ) as ColumnMapping<Quest>[];
   return {
     state: true,
     message: 'Quests fetched',
@@ -152,7 +160,7 @@ export async function updateQuest(data: IQuestUpdateState) {
     };
   }
 
-  const quests = sheetDataResponse.result;
+  const quests = sheetDataResponse.result as ColumnMapping<Quest>[];
   if (!quests) {
     return Error('Quests not found');
   }
@@ -162,14 +170,7 @@ export async function updateQuest(data: IQuestUpdateState) {
     return Error('Quest not found');
   }
 
-  quests[index] = {
-    ...quests[index],
-    title: data.title as string,
-    description: data.description as string,
-    categoryId: data.category as string,
-  };
-
-  await updateSheetData(quests);
+  await updateSheetData(data as ColumnMapping<Quest>);
   return {
     state: true,
     message: 'Quest updated',
@@ -197,7 +198,7 @@ export async function deleteQuest(id: string) {
   }
   const updatedQuests = quests.filter((row) => row.id !== id);
 
-  await updateSheetData(updatedQuests);
+  await deleteSheetData(id);
   return {
     state: true,
     message: 'Quest deleted',

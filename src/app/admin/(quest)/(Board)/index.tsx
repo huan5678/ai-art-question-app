@@ -19,7 +19,12 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
-import type { Category, ColumnMapping, IQuestState } from '@/types/quest';
+import type {
+  Category,
+  ColumnMapping,
+  IQuestState,
+  Quest,
+} from '@/types/quest';
 
 const QuestBoard = () => {
   const [quests, categories, createQuest, updateQuestCategory] = useQuestStore(
@@ -106,14 +111,11 @@ const QuestBoard = () => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="w-full shrink-0 space-y-2 md:space-y-4">
-                {quests.map((q: ColumnMapping) => {
+                {quests.map((q: ColumnMapping<Quest>) => {
                   return (
                     <QuestCard
-                      id={q.id}
-                      title={q.title}
-                      description={q.description || ''}
-                      category={q.category}
                       key={q.id}
+                      {...q}
                       handleDragStart={handleDragStart}
                       statute={true}
                     />

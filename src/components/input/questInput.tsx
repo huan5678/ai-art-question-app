@@ -4,8 +4,9 @@ import { type FC, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import { PlusCircle, X } from 'lucide-react';
 import { z } from 'zod';
+
+import { Icons } from '../icons';
 
 import { DataList } from '@/components/datalist';
 import { Button } from '@/components/ui/button';
@@ -142,7 +143,7 @@ const QuestInput: FC<IQuestInputProps> = ({
                       disabled={isPending}
                       className="disabled:pointer-events-none disabled:opacity-20"
                     >
-                      <X className="me-2 size-6" />
+                      <Icons.x className="me-2 size-4" />
                       刪除項目
                     </Button>
                   )}
@@ -156,7 +157,7 @@ const QuestInput: FC<IQuestInputProps> = ({
                       disabled={isPending}
                       className="disabled:pointer-events-none disabled:opacity-20"
                     >
-                      <PlusCircle className="me-2 size-6" />
+                      <Icons.plusCircle className="me-2 size-4" />
                       增加項目
                     </Button>
                   )}

@@ -50,20 +50,24 @@ type QuestCardProps = Quest & {
 const QuestCard = ({
   title,
   id,
-  category,
-  handleDragStart,
   description,
+  category,
   statute,
+  handleDragStart,
 }: QuestCardProps) => {
-  const [quests, updateQuest, deleteQuest] = useQuestStore((state) => [
-    state.quests,
-    state.updateQuest,
-    state.deleteQuest,
-  ]);
+  const [quests, updateQuest, deleteQuest, categories] = useQuestStore(
+    (state) => [
+      state.quests,
+      state.updateQuest,
+      state.deleteQuest,
+      state.categories,
+    ]
+  );
 
   const handleUpdateQuest = async (data: TEditMenuOnEditProps) => {
     await updateQuest(data as Quest);
   };
+
   return (
     <>
       <motion.div
@@ -71,7 +75,7 @@ const QuestCard = ({
         layoutId={id}
         draggable={!statute}
         onDragStart={(e: DragEvent) =>
-          handleDragStart(e, { title, id, category, description })
+          handleDragStart(e, { title, id, description, category })
         }
         dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
         className={cn(!statute && 'cursor-grab active:cursor-grabbing')}
@@ -92,6 +96,7 @@ const QuestCard = ({
                   onDelete={deleteQuest}
                   onEdit={handleUpdateQuest}
                   content={quests.find((q) => q.id === id) as Quest}
+                  categories={categories}
                 />
               </div>
             </div>

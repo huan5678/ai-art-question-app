@@ -15,11 +15,12 @@ import {
   useReactTable,
   type VisibilityState,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { useDebounceCallback } from 'usehooks-ts';
 
 import EditMenu from '../(EditMenu)';
+import TablePagination from './TablePagination';
 
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -38,10 +39,16 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import useQuestStore from '@/stores/questStore';
-import type { ColumnMapping, Quest, TEditMenuOnEditProps } from '@/types/quest';
+import type {
+  Category,
+  ColumnMapping,
+  Quest,
+  TEditMenuOnEditProps,
+} from '@/types/quest';
 
 interface QuestTableProps {
-  quests: ColumnMapping[];
+  quests: ColumnMapping<Quest>[];
+  categories: ColumnMapping<Category>[];
 }
 
 const columnMapping: { [key: string]: string } = {
@@ -51,7 +58,7 @@ const columnMapping: { [key: string]: string } = {
   category: '題庫',
 };
 
-export function QuestTable({ quests }: QuestTableProps) {
+export function QuestTable({ quests, categories }: QuestTableProps) {
   const [updateQuest, deleteQuest] = useQuestStore((state) => [
     state.updateQuest,
     state.deleteQuest,
@@ -86,7 +93,7 @@ export function QuestTable({ quests }: QuestTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             題目
-            <ChevronsUpDown className="ml-2 size-4" />
+            <Icons.chevronsUpDown className="ml-2 size-4" />
           </Button>
         ),
         cell: ({ row }) => <span>{row.original.title}</span>,
@@ -99,7 +106,7 @@ export function QuestTable({ quests }: QuestTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             描述
-            <ChevronsUpDown className="ml-2 size-4" />
+            <Icons.chevronsUpDown className="ml-2 size-4" />
           </Button>
         ),
         cell: ({ row }) => (
@@ -116,7 +123,7 @@ export function QuestTable({ quests }: QuestTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             題庫
-            <ChevronsUpDown className="ml-2 size-4" />
+            <Icons.chevronsUpDown className="ml-2 size-4" />
           </Button>
         ),
         cell: ({ row }) => (
@@ -134,11 +141,12 @@ export function QuestTable({ quests }: QuestTableProps) {
             content={row.original}
             onEdit={handleUpdateQuest}
             onDelete={deleteQuest}
+            categories={categories}
           />
         ),
       },
     ],
-    [deleteQuest, handleUpdateQuest]
+    [deleteQuest, handleUpdateQuest, categories]
   );
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -184,7 +192,7 @@ export function QuestTable({ quests }: QuestTableProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              選擇顯示 <ChevronDown className="ml-2 size-4" />
+              選擇顯示 <Icons.chevronDown className="ml-2 size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -264,26 +272,7 @@ export function QuestTable({ quests }: QuestTableProps) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <TablePagination table={table} />
     </div>
   );
 }

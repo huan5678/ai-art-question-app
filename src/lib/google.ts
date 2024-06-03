@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import { v4 as uuidv4 } from 'uuid';
 
 import { env } from '@/env.mjs';
-import type { ColumnMapping } from '@/types/quest';
+import type { ColumnMapping, Quest } from '@/types/quest';
 
 const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID as string;
 const GOOGLE_SERVICE_PRIVATE_KEY = env.GOOGLE_SERVICE_PRIVATE_KEY as string;
@@ -71,9 +71,14 @@ function mapToChineseKeys(data: ColumnMapping[]): string[][] {
   });
 }
 
-export async function getSheetData() {
+async function getSheets() {
   const glAuth = await google.auth.getClient(options);
   const sheets = google.sheets({ version: 'v4', auth: glAuth });
+  return sheets;
+}
+
+export async function getSheetData() {
+  const sheets = await getSheets();
   const sheetData = await sheets.spreadsheets.values.get({
     spreadsheetId: GOOGLE_SPREADSHEET_ID,
     range: 'quests',
@@ -95,14 +100,65 @@ export async function getSheetData() {
   };
 }
 
-export async function updateSheetData(data: ColumnMapping[]) {
-  const glAuth = await google.auth.getClient(options);
-  const sheets = google.sheets({ version: 'v4', auth: glAuth });
+export async function createSheetData(data: ColumnMapping<Quest>[]) {
+  const sheets = await getSheets();
   const values = [
     Object.values(columnMapping), // 插入標題行
     ...mapToChineseKeys(data),
   ];
-  await sheets.spreadsheets.values.append({
+  const result = await sheets.spreadsheets.values.append({
+    spreadsheetId: GOOGLE_SPREADSHEET_ID,
+    range: 'quests',
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values,
+    },
+  });
+  console.log(result);
+}
+
+export async function updateSheetData(data: ColumnMapping<Quest>) {
+  const { result } = await getSheetData();
+  if (!result) {
+    throw new Error('Sheet data not found');
+  }
+  const sheets = await getSheets();
+
+  const updatedData = result.map((row) => {
+    if (row.id === data.id) {
+      return data;
+    }
+    return row;
+  });
+
+  const values = [
+    Object.values(columnMapping), // 插入標題行
+    ...mapToChineseKeys(updatedData),
+  ];
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: GOOGLE_SPREADSHEET_ID,
+    range: 'quests',
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values,
+    },
+  });
+}
+
+export async function deleteSheetData(id: string) {
+  const { result } = await getSheetData();
+  if (!result) {
+    throw new Error('Sheet data not found');
+  }
+  const sheets = await getSheets();
+
+  const updatedData = result.filter((row) => row.id !== id);
+
+  const values = [
+    Object.values(columnMapping), // 插入標題行
+    ...mapToChineseKeys(updatedData),
+  ];
+  await sheets.spreadsheets.values.update({
     spreadsheetId: GOOGLE_SPREADSHEET_ID,
     range: 'quests',
     valueInputOption: 'USER_ENTERED',

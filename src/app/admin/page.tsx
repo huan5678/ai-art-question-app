@@ -107,7 +107,7 @@ const Page = () => {
                 <span className="text-sm font-bold">({quests.length})</span>
               </div>
             </div>
-            <QuestTable quests={quests} />
+            <QuestTable quests={quests} categories={categories} />
           </div>
         </div>
       )}

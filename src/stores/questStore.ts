@@ -27,18 +27,19 @@ const questStore = (
   set: (args: Partial<IQuestState>) => void,
   get: () => IQuestState
 ) => ({
-  quests: [] as ColumnMapping[],
-  setQuests: (quests: ColumnMapping[]) => set({ quests }),
+  quests: [] as ColumnMapping<Quest>[],
+  setQuests: (quests: ColumnMapping<Quest>[]) => set({ quests }),
   questsStatus: 'pending' as QueryStatus,
   setQuestsStatus: (status: QueryStatus) => set({ questsStatus: status }),
-  categories: [] as Category[],
-  setCategories: (categories: Category[]) => set({ categories }),
+  categories: [] as ColumnMapping<Category>[],
+  setCategories: (categories: ColumnMapping<Category>[]) => set({ categories }),
   setCategoriesStatus: (status: QueryStatus) =>
     set({ categoriesStatus: status }),
   categoriesStatus: 'pending' as QueryStatus,
 
-  questsList: [] as Quest[],
-  setQuestsList: (quests: Quest[]) => set({ questsList: quests }),
+  questsList: [] as ColumnMapping<Quest>[],
+  setQuestsList: (quests: ColumnMapping<Quest>[]) =>
+    set({ questsList: quests }),
 
   getQuests: async () => {
     set({ questsStatus: 'pending' });

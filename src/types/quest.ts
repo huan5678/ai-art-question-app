@@ -1,6 +1,9 @@
-// 定義 Quest 和 Category 的新型別
-export type ColumnMapping = { [key: string]: string };
+// 定義泛型 ColumnMapping，默認值為 { [key: string]: string }
+export type ColumnMapping<T = { [key: string]: string }> = {
+  [K in keyof T]: string;
+};
 
+// 定義 Quest 類型
 export type Quest = {
   id: string;
   title: string;
@@ -8,6 +11,7 @@ export type Quest = {
   category: string; // 題庫直接作為 category
 };
 
+// 定義 Category 類型
 export type Category = {
   id: string;
   name: string;
@@ -29,12 +33,12 @@ export interface IQuestUpdateState extends IQuestCreateProps {
 
 // 更新 IQuestState 介面
 export interface IQuestState {
-  quests: ColumnMapping[];
-  categories: Category[];
-  setQuests: (quests: ColumnMapping[]) => void;
-  setCategories: (categories: Category[]) => void;
-  questsList: Quest[];
-  setQuestsList: (quests: Quest[]) => void;
+  quests: ColumnMapping<Quest>[];
+  categories: ColumnMapping<Category>[];
+  setQuests: (quests: ColumnMapping<Quest>[]) => void;
+  setCategories: (categories: ColumnMapping<Category>[]) => void;
+  questsList: ColumnMapping<Quest>[];
+  setQuestsList: (quests: ColumnMapping<Quest>[]) => void;
   questsStatus: QueryStatus;
   categoriesStatus: QueryStatus;
   setQuestsStatus: (status: QueryStatus) => void;
