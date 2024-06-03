@@ -32,27 +32,21 @@ const Page = () => {
   };
 
   useEffect(() => {
-    questsStatus === 'success' &&
-      categoriesStatus === 'success' &&
+    if (questsStatus === 'success' && categoriesStatus === 'success') {
       setIsHydrated(true);
+    }
   }, [questsStatus, categoriesStatus]);
 
   useEffect(() => {
     const handleScroll = () => {
       if (scrollRef.current) {
         const { scrollTop } = scrollRef.current;
-        if (scrollTop > 0) {
-          setShowScroll(true);
-        } else {
-          setShowScroll(false);
-        }
+        setShowScroll(scrollTop > 0);
 
-        // 清除之前的計時器
         if (scrollTimeoutRef.current) {
           clearTimeout(scrollTimeoutRef.current);
         }
 
-        // 設置新的計時器
         scrollTimeoutRef.current = setTimeout(() => {
           setShowScroll(false);
         }, 2000);

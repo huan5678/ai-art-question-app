@@ -11,7 +11,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   const router = useRouter();
 
-  if (!session) {
+  if (!session || !session.user) {
     return <></>;
   }
   if (session.user.role !== 'admin') {
