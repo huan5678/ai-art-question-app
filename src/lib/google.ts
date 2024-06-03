@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import { v4 as uuidv4 } from 'uuid';
 
 import { env } from '@/env.mjs';
-import type { ColumnMapping, Quest } from '@/types/quest';
+import type { Category, ColumnMapping, Quest } from '@/types/quest';
 
 const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID as string;
 const GOOGLE_SERVICE_PRIVATE_KEY = env.GOOGLE_SERVICE_PRIVATE_KEY as string;
@@ -117,23 +117,34 @@ export async function createSheetData(data: ColumnMapping<Quest>[]) {
   console.log(result);
 }
 
-export async function updateSheetData(data: ColumnMapping<Quest>) {
+export async function updateSheetData(
+  data: ColumnMapping<Quest | Category> | ColumnMapping<Quest | Category>[]
+) {
   const { result } = await getSheetData();
   if (!result) {
     throw new Error('Sheet data not found');
   }
   const sheets = await getSheets();
-
-  const updatedData = result.map((row) => {
-    if (row.id === data.id) {
-      return data;
+  if (!Array.isArray(data)) {
+    for (const row of result) {
+      if (row.id === data.id) {
+        return data;
+      }
     }
-    return row;
-  });
+  }
+
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      const index = result.findIndex((row) => row.id === item.id);
+      if (index !== -1) {
+        result[index] = item;
+      }
+    }
+  }
 
   const values = [
     Object.values(columnMapping), // 插入標題行
-    ...mapToChineseKeys(updatedData),
+    ...mapToChineseKeys(result),
   ];
   await sheets.spreadsheets.values.update({
     spreadsheetId: GOOGLE_SPREADSHEET_ID,

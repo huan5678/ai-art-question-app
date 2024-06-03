@@ -3,7 +3,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { getSheetData, updateSheetData } from '@/lib/google';
-import type { Category } from '@/types/quest';
+import type { Category, ColumnMapping, Quest } from '@/types/quest';
 
 export async function getCategories() {
   const sheetDataResponse = await getSheetData();
@@ -77,7 +77,7 @@ export async function updateCategory(id: string, name: string) {
       return { ...row, category: name };
     }
     return row;
-  });
+  }) as ColumnMapping<Category>[];
 
   await updateSheetData(resultData);
   return {
@@ -105,7 +105,7 @@ export async function deleteCategory(id: string) {
       return { ...row, category: '' };
     }
     return row;
-  });
+  }) as ColumnMapping<Quest>[];
 
   await updateSheetData(updatedCategories);
   return {
