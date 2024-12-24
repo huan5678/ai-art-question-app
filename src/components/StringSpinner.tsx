@@ -15,6 +15,7 @@ interface StringSpinnerProps {
 const StringSpinner = ({
   strings = [
     {
+      index: '',
       id: '',
       title: '',
       description: '',
@@ -33,9 +34,12 @@ const StringSpinner = ({
     }
   }, []);
 
-  const itemIndexesToShow = Array.from({ length: drawCount }, (_, i) => {
-    return (index + i) % strings.length;
-  });
+  const itemIndexesToShow = Array.from(
+    { length: drawCount > 3 ? 3 : drawCount },
+    (_, i) => {
+      return (index + i) % strings.length;
+    }
+  );
 
   useInterval(() => {
     setIndex((prev) => (prev + 1) % strings.length);

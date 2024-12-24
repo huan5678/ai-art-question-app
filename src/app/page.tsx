@@ -27,12 +27,13 @@ import useConfigurationStore from '@/stores/setupStore';
 import type { Quest } from '@/types/quest';
 
 const Home = () => {
-  const [title, drawCount, selectedQuests, setSelectedQuests] =
+  const [title, drawCount, selectedQuests, setSelectedQuests, showIndex] =
     useConfigurationStore((state) => [
       state.title,
       state.drawCount,
       state.selectedQuests,
       state.setSelectedQuests,
+      state.showIndex,
     ]);
   const [questsList, questsStatus] = useQuestStore((state) => [
     state.questsList,
@@ -69,9 +70,10 @@ const Home = () => {
       }
       setIsSpinning(false);
       confettiAction();
-      const newSelectedQuests = selectedIndexes.map(
-        (index) => unselectedData[index]
-      );
+      const newSelectedQuests = selectedIndexes.map((index) => ({
+        index: index.toString(),
+        ...unselectedData[index],
+      }));
       const historySelectedQuests = [
         ...localStorageSelectedQuests,
         ...newSelectedQuests,
@@ -139,9 +141,9 @@ const Home = () => {
         alt="Background Image"
         className="z-[-1]"
       />
-      <main className="flex h-screen flex-col py-4 md:py-8">
+      <main className="flex min-h-screen flex-col py-4 md:py-8">
         <h1 className="text-center text-[4vmax] font-black text-white/50 md:text-[8vmax] dark:text-white">
-          2024 台灣 AI 生成大賽
+          {title.header}
         </h1>
         <div className="flex justify-center gap-4 text-lg text-white/50 md:-translate-y-6 md:text-6xl dark:text-white">
           <p>{title.mainTitle}</p>
@@ -160,7 +162,7 @@ const Home = () => {
             </motion.div>
           ) : (
             <>
-              <p className="ms-auto">目前題目數: {unselectedData?.length}</p>
+              <p className="ms-auto">目前項目數: {unselectedData?.length}</p>
               {selectedQuests.length === 0 && !isSpinning && (
                 <div className="flex flex-col items-end gap-2">
                   <CircularAnimation
@@ -196,7 +198,7 @@ const Home = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="py-6"
+                    className="max-h-[50vh] space-y-4 overflow-y-auto py-6"
                   >
                     {selectedQuests.map((item) => (
                       <motion.li
@@ -205,9 +207,15 @@ const Home = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="text-center text-4xl md:text-8xl"
+                        className="text-center text-4xl"
                         key={item.id}
                       >
+                        {showIndex && (
+                          <motion.div className="text-center text-lg">
+                            {`#${item.index}`}
+                          </motion.div>
+                        )}
+
                         {item.title}
                       </motion.li>
                     ))}
@@ -230,22 +238,24 @@ const Home = () => {
                   <h3 className="mb-2 text-center text-2xl">本次獲選的是</h3>
                   <motion.ul
                     layout
-                    className="mx-auto mb-2 flex max-w-screen-lg flex-col gap-4"
+                    className="mx-auto mb-2 flex max-h-[50vh] max-w-screen-lg flex-wrap justify-center gap-4 space-y-4 overflow-y-auto py-6"
                   >
                     {selectedQuests.map((quest) => (
                       <motion.li
                         key={quest.id}
                         className="space-y-2 rounded-xl border px-6 py-4 shadow md:space-y-4"
                       >
-                        <motion.h3
-                          layout
-                          className="text-center text-4xl md:text-8xl"
-                        >
+                        {showIndex && (
+                          <motion.div className="text-center text-lg">
+                            {`#${quest.index}`}
+                          </motion.div>
+                        )}
+                        <motion.h3 layout className="text-center text-4xl">
                           {quest.title}
                         </motion.h3>
                         <motion.span
                           layout
-                          className="block text-center text-base font-light text-[var(--n5)] md:text-2xl"
+                          className="block text-center text-base font-light text-[var(--n5)]"
                         >
                           {quest.description}
                         </motion.span>
@@ -278,9 +288,17 @@ const Home = () => {
                         </DialogTitle>
                       </DialogHeader>
                       <DialogDescription>目前已抽選過的項目:</DialogDescription>
-                      <ul className="space-y-2">
-                        {localStorageSelectedQuests.map((item) => (
-                          <li className="text-2xl" key={item.id}>
+                      <ul className="max-h-[65vh] space-y-2 overflow-y-scroll py-20">
+                        {localStorageSelectedQuests.map((item, index) => (
+                          <li
+                            className={`text-2xl ${index !== localStorageSelectedQuests.length - 1 ? 'border-b pb-4' : ''}`}
+                            key={item.id}
+                          >
+                            {showIndex && (
+                              <div className="text-center text-lg">
+                                {`#${item.index}`}
+                              </div>
+                            )}
                             {item.title}
                           </li>
                         ))}
