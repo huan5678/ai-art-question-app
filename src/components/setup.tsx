@@ -135,7 +135,7 @@ const Setup = () => {
                     <Label htmlFor="showIndex" className="block text-lg">
                       顯示抽籤序號
                     </Label>
-                    <div class="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <Checkbox
                         id="showIndex"
                         checked={showIndex}
