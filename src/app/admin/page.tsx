@@ -42,12 +42,10 @@ const Page = () => {
         const { scrollTop } = scrollRef.current;
         setShowScroll(scrollTop > 0);
 
-        // 清除之前的計時器
         if (scrollTimeoutRef.current) {
           clearTimeout(scrollTimeoutRef.current);
         }
 
-        // 設置新的計時器
         scrollTimeoutRef.current = setTimeout(() => {
           setShowScroll(false);
         }, 2000);

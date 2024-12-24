@@ -5,6 +5,7 @@ export type ColumnMapping<T = { [key: string]: string }> = {
 
 // 定義 Quest 類型
 export type Quest = {
+  index?: string;
   id: string;
   title: string;
   description: string;
